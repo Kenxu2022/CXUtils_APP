@@ -37,10 +37,12 @@ class _InfoSettingsPageState extends State<InfoSettingsPage> {
       await settings.setLocationText(_locationTextController.text);
       await settings.setInitializationFinished(true);
 
+      if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const HomePage()),
       );
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('请填写所有信息')),
       );
@@ -53,67 +55,46 @@ class _InfoSettingsPageState extends State<InfoSettingsPage> {
       appBar: AppBar(
         title: const Text('信息设置'),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              children: [
-                ListTile(
-                  title: const Text('纬度'),
-                  trailing: SizedBox(
-                    width: 200,
-                    child: TextField(
-                      controller: _latitudeController,
-                      textAlign: TextAlign.end,
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        hintText: '请输入纬度',
-                      ),
-                      onChanged: (value) => setState(() {}),
-                    ),
-                  ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextField(
+                controller: _latitudeController,
+                decoration: const InputDecoration(
+                  hintText: '纬度',
+                  border: OutlineInputBorder(),
                 ),
-                ListTile(
-                  title: const Text('经度'),
-                  trailing: SizedBox(
-                    width: 200,
-                    child: TextField(
-                      controller: _longitudeController,
-                      textAlign: TextAlign.end,
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        hintText: '请输入经度',
-                      ),
-                      onChanged: (value) => setState(() {}),
-                    ),
-                  ),
+                onChanged: (value) => setState(() {}),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _longitudeController,
+                decoration: const InputDecoration(
+                  hintText: '经度',
+                  border: OutlineInputBorder(),
                 ),
-                ListTile(
-                  title: const Text('位置显示文字'),
-                  trailing: SizedBox(
-                    width: 200,
-                    child: TextField(
-                      controller: _locationTextController,
-                      textAlign: TextAlign.end,
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        hintText: '请输入位置文字',
-                      ),
-                      onChanged: (value) => setState(() {}),
-                    ),
-                  ),
+                onChanged: (value) => setState(() {}),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _locationTextController,
+                decoration: const InputDecoration(
+                  hintText: '位置显示文字',
+                  border: OutlineInputBorder(),
                 ),
-              ],
-            ),
+                onChanged: (value) => setState(() {}),
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: _isFormComplete ? _saveAndFinish : null,
+                child: const Text('完成'),
+              ),
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton(
-              onPressed: _isFormComplete ? _saveAndFinish : null,
-              child: const Text('完成'),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
