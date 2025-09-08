@@ -24,9 +24,18 @@ class _InfoSettingsPageState extends State<InfoSettingsPage> {
     _locationTextController.text = settings.locationText;
   }
 
+  bool get _isLatitudeValid =>
+      _latitudeController.text.isEmpty ||
+      double.tryParse(_latitudeController.text) != null;
+  bool get _isLongitudeValid =>
+      _longitudeController.text.isEmpty ||
+      double.tryParse(_longitudeController.text) != null;
+
   bool get _isFormComplete =>
       _latitudeController.text.isNotEmpty &&
+      double.tryParse(_latitudeController.text) != null &&
       _longitudeController.text.isNotEmpty &&
+      double.tryParse(_longitudeController.text) != null &&
       _locationTextController.text.isNotEmpty;
 
   Future<void> _saveAndFinish() async {
@@ -63,18 +72,24 @@ class _InfoSettingsPageState extends State<InfoSettingsPage> {
             children: [
               TextField(
                 controller: _latitudeController,
-                decoration: const InputDecoration(
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
                   hintText: '纬度',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
+                  errorText: _isLatitudeValid ? null : '请输入有效的数字',
                 ),
                 onChanged: (value) => setState(() {}),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: _longitudeController,
-                decoration: const InputDecoration(
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
                   hintText: '经度',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
+                  errorText: _isLongitudeValid ? null : '请输入有效的数字',
                 ),
                 onChanged: (value) => setState(() {}),
               ),
