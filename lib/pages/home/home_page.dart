@@ -9,7 +9,7 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('CXUtils'),
       ),
-      body: const Placeholder(),
+      body: const SafeArea(child: Placeholder()),
     );
   }
 }
