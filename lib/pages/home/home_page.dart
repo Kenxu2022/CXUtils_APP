@@ -1,4 +1,5 @@
 import 'package:cxutils/network/api.dart';
+import 'package:cxutils/pages/home/course_selection_page.dart';
 import 'package:cxutils/providers/credentials_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -97,7 +98,14 @@ class _HomePageState extends State<HomePage> {
                       padding: const EdgeInsets.all(16.0),
                       child: ElevatedButton(
                         onPressed: () {
-                          //  留空
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => CourseSelectionPage(
+                                selectedUsernames: _selectedUsername,
+                              ),
+                            ),
+                          );
                         },
                         child: const Text('下一步'),
                       ),
