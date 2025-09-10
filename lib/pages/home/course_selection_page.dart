@@ -12,7 +12,7 @@ class CourseSelectionPage extends StatefulWidget {
 
 class _CourseSelectionPageState extends State<CourseSelectionPage> {
   late Future<Map<String, List<Course>>> _coursesFuture;
-  final Map<String, Course> _selectedCourses = {};
+  final Map<String, Course> _selectedCourse = {};
   bool _showNextButton = false;
 
   @override
@@ -25,18 +25,18 @@ class _CourseSelectionPageState extends State<CourseSelectionPage> {
       Map<String, List<Course>> allCourses) {
     setState(() {
       if (selectedCourse != null) {
-        _selectedCourses[username] = selectedCourse;
+        _selectedCourse[username] = selectedCourse;
 
         // Auto-select for other users if this is the first selection
         if (widget.selectedUsernames.length > 1 &&
-            _selectedCourses.length == 1) {
+            _selectedCourse.length == 1) {
           bool allFound = true;
           for (var otherUser in widget.selectedUsernames) {
             if (otherUser == username) continue;
             try {
               final matchingCourse = allCourses[otherUser]!
                   .firstWhere((course) => course.name == selectedCourse.name);
-              _selectedCourses[otherUser] = matchingCourse;
+              _selectedCourse[otherUser] = matchingCourse;
             } catch (e) {
               allFound = false;
             }
@@ -47,18 +47,18 @@ class _CourseSelectionPageState extends State<CourseSelectionPage> {
                   content: Text('找不到相同的课程，请单独签到')),
             );
             // Clear selection because auto-selection failed
-            _selectedCourses.clear();
+            _selectedCourse.clear();
           }
         }
       } else {
-        _selectedCourses.remove(username);
+        _selectedCourse.remove(username);
       }
       _checkIfAllSelected();
     });
   }
 
   void _checkIfAllSelected() {
-    if (_selectedCourses.length == widget.selectedUsernames.length) {
+    if (_selectedCourse.length == widget.selectedUsernames.length) {
       _showNextButton = true;
     } else {
       _showNextButton = false;
@@ -101,7 +101,7 @@ class _CourseSelectionPageState extends State<CourseSelectionPage> {
                             subtitle: DropdownButton<Course>(
                               isExpanded: true,
                               hint: const Text('--请选择--'),
-                              value: _selectedCourses[username],
+                              value: _selectedCourse[username],
                               onChanged: (Course? newValue) {
                                 _onCourseSelected(
                                     username, newValue, allCourses);
@@ -124,7 +124,16 @@ class _CourseSelectionPageState extends State<CourseSelectionPage> {
                       padding: const EdgeInsets.all(16.0),
                       child: ElevatedButton(
                         onPressed: () {
-                          //  留空
+                          if (_selectedCourse.isNotEmpty) {
+                            final firstCourse = _selectedCourse.values.first;
+                            final selectedCourseDetails = [
+                              firstCourse.courseId,
+                              firstCourse.classId
+                            ];
+                            print("selected users: ${widget.selectedUsernames}");
+                            print(
+                                "selected course details: $selectedCourseDetails");
+                          }
                         },
                         child: const Text('下一步'),
                       ),
