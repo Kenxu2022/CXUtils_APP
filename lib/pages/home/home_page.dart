@@ -1,6 +1,7 @@
 import 'package:cxutils/network/api.dart';
 import 'package:cxutils/pages/home/course_selection_page.dart';
 import 'package:cxutils/providers/credentials_provider.dart';
+import 'package:cxutils/pages/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -20,6 +21,17 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('CXUtils'),
+        actions: [
+          Tooltip(
+            message: "设置",
+            child: IconButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsPage()),);
+              },
+              icon: Icon(Icons.settings_rounded),
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Consumer<CredentialsProvider>(
