@@ -111,31 +111,35 @@ class _SettingsPageState extends State<SettingsPage> {
         TextEditingController(text: settingsProvider.overrideCourseID);
     final classIDController =
         TextEditingController(text: settingsProvider.overrideClassID);
+    final formKey = GlobalKey<FormState>();
 
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                TextField(
-                  controller: courseIDController,
-                  decoration: const InputDecoration(
-                    labelText: 'CourseID',
+            child: Form(
+              key: formKey,
+              child: ListBody(
+                children: <Widget>[
+                  TextFormField(
+                    controller: courseIDController,
+                    decoration: const InputDecoration(
+                      labelText: 'CourseID',
+                    ),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   ),
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                ),
-                TextField(
-                  controller: classIDController,
-                  decoration: const InputDecoration(
-                    labelText: 'ClassID',
+                  TextFormField(
+                    controller: classIDController,
+                    decoration: const InputDecoration(
+                      labelText: 'ClassID',
+                    ),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   ),
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           actions: <Widget>[
@@ -148,10 +152,14 @@ class _SettingsPageState extends State<SettingsPage> {
             TextButton(
               child: const Text('确定'),
               onPressed: () async {
-                await settingsProvider.setOverrideCourseID(courseIDController.text);
-                await settingsProvider.setOverrideClassID(classIDController.text);
-                if (context.mounted) {
-                  Navigator.of(context).pop();
+                if (formKey.currentState!.validate()) {
+                  await settingsProvider
+                      .setOverrideCourseID(courseIDController.text);
+                  await settingsProvider
+                      .setOverrideClassID(classIDController.text);
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                  }
                 }
               },
             ),
