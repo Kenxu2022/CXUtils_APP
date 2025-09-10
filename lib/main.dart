@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cxutils/providers/settings_provider.dart';
+import 'package:cxutils/providers/credentials_provider.dart';
 import 'package:cxutils/pages/home/home_page.dart';
 import 'package:cxutils/pages/initialization/initialization_page.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => SettingsProvider.instance,
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => SettingsProvider.instance),
+        ChangeNotifierProvider(create: (context) => CredentialsProvider.instance),
+      ],
       child: const MyApp(),
     ),
   );
