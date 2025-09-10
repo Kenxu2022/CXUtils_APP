@@ -80,3 +80,48 @@ Future<Map<String, dynamic>> deleteCredential(
     };
   }
 }
+
+Future<Map<String, dynamic>> getCourse(
+  /* return format:
+  {
+    'success': bool,
+    'data': List<Map<String, dynamic>> | String, // if success is true, data is List<Map<String, dynamic>>, else data is String (error message)
+      format: [
+        {
+          'name': 
+          'teacher': 
+          'courseID':
+          'classID': 
+        },
+        ...
+      ]
+  }
+  */
+  String username,
+) async {
+  final url = '${settings.endpoint}/getCourse';
+  final headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ${await getToken()}',
+  };
+  final body = jsonEncode({
+    'username': username,
+  });
+
+  try {
+    final response = await http
+        .post(
+          Uri.parse(url),
+          headers: headers,
+          body: body,
+        )
+        .timeout(const Duration(seconds: 5));
+    final Map<String, dynamic> responseBody = jsonDecode(response.body);
+    return responseBody;
+  } on TimeoutException {
+    return {
+      'success': false,
+      'data': '请求超时，请检查网络',
+    };
+  }
+}
