@@ -11,6 +11,8 @@ class SettingsProvider extends ChangeNotifier {
   String _latitude = "";
   String _longitude = "";
   String _locationText = "";
+  String _overrideCourseID = "";
+  String _overrideClassID = "";
   bool _isInitializationFinished = false;
   bool _isInitialized = false;
 
@@ -32,6 +34,8 @@ class SettingsProvider extends ChangeNotifier {
     final String? latitude = _prefs.getString('latitude');
     final String? longitude = _prefs.getString('longitude');
     final String? locationText = _prefs.getString('locationText');
+    final String? overrideCourseID = _prefs.getString('overrideCourseID');
+    final String? overrideClassID = _prefs.getString('overrideClassID');
     _isInitializationFinished = _prefs.getBool('isInitializationFinished') ?? false;
     _themeValue =
         themeInt == 0
@@ -45,6 +49,8 @@ class SettingsProvider extends ChangeNotifier {
     _latitude = latitude ?? "";
     _longitude = longitude ?? "";
     _locationText = locationText ?? "";
+    _overrideCourseID = overrideCourseID ?? "";
+    _overrideClassID = overrideClassID ?? "";
     _isInitialized = true;
     notifyListeners();
   }
@@ -59,6 +65,8 @@ class SettingsProvider extends ChangeNotifier {
   String get latitude => _latitude;
   String get longitude => _longitude;
   String get locationText => _locationText;
+  String get overrideCourseID => _overrideCourseID;
+  String get overrideClassID => _overrideClassID;
 
   Future<void> setInitializationFinished(bool value) async {
     _isInitializationFinished = value;
@@ -109,6 +117,18 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> setLocationText(String value) async {
     _locationText = value;
     _prefs.setString('locationText', value);
+    notifyListeners();
+  }
+
+  Future<void> setOverrideCourseID(String value) async {
+    _overrideCourseID = value;
+    _prefs.setString('overrideCourseID', value);
+    notifyListeners();
+  }
+
+  Future<void> setOverrideClassID(String value) async {
+    _overrideClassID = value;
+    _prefs.setString('overrideClassID', value);
     notifyListeners();
   }
 

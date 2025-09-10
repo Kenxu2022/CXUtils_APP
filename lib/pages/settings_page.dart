@@ -105,6 +105,62 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  Future<void> _showOverrideDialog() async {
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final courseIDController =
+        TextEditingController(text: settingsProvider.overrideCourseID);
+    final classIDController =
+        TextEditingController(text: settingsProvider.overrideClassID);
+
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                TextField(
+                  controller: courseIDController,
+                  decoration: const InputDecoration(
+                    labelText: 'CourseID',
+                  ),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                ),
+                TextField(
+                  controller: classIDController,
+                  decoration: const InputDecoration(
+                    labelText: 'ClassID',
+                  ),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('取消'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('确定'),
+              onPressed: () async {
+                await settingsProvider.setOverrideCourseID(courseIDController.text);
+                await settingsProvider.setOverrideClassID(classIDController.text);
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final settingsProvider = Provider.of<SettingsProvider>(context);
@@ -163,8 +219,19 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             SizedBox(height: 8),
             ListTile(
+              title: Text("强制指定课程信息", style: TextStyle(fontSize: 16)),
+              subtitle: Text("仅供调试使用，正常使用请勿设置"),
+              trailing: ElevatedButton(
+                onPressed: () {
+                  _showOverrideDialog();
+                },
+                child: const Text('设置'),
+              ),
+            ),
+            SizedBox(height: 4),
+            ListTile(
               title: Text("清除所有数据", style: TextStyle(fontSize: 16)),
-              subtitle: Text("将清除对话记录并重置所有设置，重启生效"),
+              subtitle: Text("重置所有设置，重启生效"),
               trailing: IconButton(
                 onPressed: () async {
                   HapticFeedback.mediumImpact();
