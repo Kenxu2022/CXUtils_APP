@@ -1,3 +1,4 @@
+import 'package:cxutils/pages/home/activity_selection_page.dart';
 import 'package:cxutils/providers/settings_provider.dart';
 import 'package:cxutils/utils/course_logic.dart';
 import 'package:flutter/material.dart';
@@ -104,12 +105,19 @@ class _CourseSelectionPageState extends State<CourseSelectionPage> {
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
-                      final selectedCourseDetails = [
+                      final selectedCourseDetails = <String>[
                         _settings.overrideCourseID,
                         _settings.overrideClassID
                       ];
-                      print("selected users: ${widget.selectedUsernames}");
-                      print("selected course details: $selectedCourseDetails");
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ActivitySelectionPage(
+                            selectedUsernames: widget.selectedUsernames,
+                            selectedCourseDetails: selectedCourseDetails,
+                          ),
+                        ),
+                      );
                     },
                     child: const Text('下一步'),
                   )
@@ -172,12 +180,22 @@ class _CourseSelectionPageState extends State<CourseSelectionPage> {
                                 if (_selectedCourse.isNotEmpty) {
                                   final firstCourse =
                                       _selectedCourse.values.first;
-                                  final selectedCourseDetails = [
+                                  final selectedCourseDetails = <String>[
                                     firstCourse.courseId,
                                     firstCourse.classId
                                   ];
-                                  print("selected users: ${widget.selectedUsernames}");
-                                  print("selected course details: $selectedCourseDetails");
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          ActivitySelectionPage(
+                                        selectedUsernames:
+                                            widget.selectedUsernames,
+                                        selectedCourseDetails:
+                                            selectedCourseDetails,
+                                      ),
+                                    ),
+                                  );
                                 }
                               },
                               child: const Text('下一步'),

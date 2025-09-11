@@ -3,8 +3,8 @@ import 'package:cxutils/network/api.dart';
 class Course {
   final String name;
   final String teacher;
-  final dynamic courseId;
-  final dynamic classId;
+  final String courseId;
+  final String classId;
 
   Course(
       {required this.name,
@@ -16,8 +16,8 @@ class Course {
     return Course(
       name: json['name'],
       teacher: json['teacher'],
-      courseId: json['courseID'],
-      classId: json['classID'],
+      courseId: json['courseID'].toString(),
+      classId: json['classID'].toString(),
     );
   }
 }
