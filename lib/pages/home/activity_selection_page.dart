@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cxutils/network/api.dart' as api;
+import 'package:cxutils/pages/home/signin_page.dart';
 
 class ActivitySelectionPage extends StatefulWidget {
   final List<String> selectedUsernames;
@@ -107,11 +108,17 @@ class _ActivitySelectionPageState extends State<ActivitySelectionPage> {
                     child: Center(
                       child: ElevatedButton(
                         onPressed: () {
-                          // 之后的逻辑暂时留空
-                          if (_selectedActiveID != null) {
-                            // ignore: avoid_print
-                            print('Selected Active ID: $_selectedActiveID');
-                          }
+                          if (_selectedActiveID == null) return;
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => SignInPage(
+                                selectedUsernames: widget.selectedUsernames,
+                                selectedCourseDetails: widget.selectedCourseDetails,
+                                selectedActiveID: _selectedActiveID!,
+                              ),
+                            ),
+                          );
                         },
                         child: const Text('下一步'),
                       ),
