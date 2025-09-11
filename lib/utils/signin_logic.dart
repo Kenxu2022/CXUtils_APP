@@ -5,6 +5,7 @@ Future<List<Map<String, dynamic>>> signInAll(
   List<String> usernames,
   String activeID, {
   List<String>? validateCodes,
+  String? enc,
   String? signCode,
 }) async {
   final List<Future<Map<String, dynamic>>> futures = [];
@@ -19,7 +20,7 @@ Future<List<Map<String, dynamic>>> signInAll(
         futures.add(api.normalSignIn(username, activeID, validate));
         break;
       case 2: // qrcode
-        futures.add(api.qrcodeSignIn(username, activeID, '123456', validate));
+        futures.add(api.qrcodeSignIn(username, activeID, enc!, validate));
         break;
       case 4: // location
         futures.add(api.locationSignIn(username, activeID, validate));

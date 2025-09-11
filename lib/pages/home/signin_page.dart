@@ -3,6 +3,7 @@ import 'package:cxutils/network/api.dart' as api;
 import 'package:cxutils/pages/home/home_page.dart';
 import 'package:cxutils/utils/signin_logic.dart';
 import 'package:cxutils/pages/home/signcode_input_page.dart';
+import 'package:cxutils/pages/home/qrcode_scanning_page.dart';
 
 class SignInPage extends StatefulWidget {
   final List<String> selectedUsernames;
@@ -81,6 +82,7 @@ class _SignInPageState extends State<SignInPage> {
       // prepare signCode for type 3/5 by navigating to input page
       final int type = detail['type'];
       String? signCode;
+      String? enc;
       if (type == 3 || type == 5) {
         signCode = await Navigator.of(context).push<String>(
           MaterialPageRoute(builder: (_) => const SigncodeInputPage()),
@@ -88,6 +90,18 @@ class _SignInPageState extends State<SignInPage> {
         if (signCode == null || signCode.isEmpty) {
           setState(() {
             _error = '未输入签到码，已取消';
+            _loading = false;
+          });
+          return;
+        }
+      } else if (type == 2) {
+        // 扫码获取 enc
+        enc = await Navigator.of(context).push<String>(
+          MaterialPageRoute(builder: (_) => const QrcodeScanningPage()),
+        );
+        if (enc == null || enc.isEmpty) {
+          setState(() {
+            _error = '未获取到二维码 enc，已取消';
             _loading = false;
           });
           return;
@@ -101,6 +115,7 @@ class _SignInPageState extends State<SignInPage> {
         widget.selectedActiveID,
         validateCodes: detail['needValidation'] == true ? fetchedValidateCode : null,
         signCode: signCode,
+        enc: enc
       );
       final overallSuccess = results.every((r) => r['success'] == true);
       String? errorData;
