@@ -35,7 +35,6 @@ class _ActivitySelectionPageState extends State<ActivitySelectionPage> {
         widget.selectedCourseDetails[0],
         widget.selectedCourseDetails[1],
       );
-      print(response['data']);
       if (response['success']) {
         setState(() {
           _activities = List<Map<String, dynamic>>.from(response['data']);

@@ -260,3 +260,170 @@ Future<Map<String, dynamic>> getValidateCode(
     };
   }
 }
+
+Future<Map<String, dynamic>> normalSignIn(
+  /* return format:
+  {
+    'success': bool,
+    'detail': null | String, // if success is true, data is null, else data is String (error message)
+  }
+  */
+  String username,
+  String activeID,
+  [String? validate]
+) async {
+  final url = '${settings.endpoint}/normalSignIn';
+  final headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ${await getToken()}',
+  };
+  final body = jsonEncode({
+    'username': username,
+    'activeID': activeID,
+    'validate': validate,
+  });
+
+  try {
+    final response = await http
+        .post(
+          Uri.parse(url),
+          headers: headers,
+          body: body,
+        )
+        .timeout(const Duration(seconds: 5));
+    final Map<String, dynamic> responseBody = jsonDecode(response.body);
+    return responseBody;
+  } on TimeoutException {
+    return {
+      'success': false,
+      'detail': '请求超时，请检查网络',
+    };
+  }
+}
+
+Future<Map<String, dynamic>> locationSignIn(
+  /* return format:
+  {
+    'success': bool,
+    'detail': null | String, // if success is true, data is null, else data is String (error message)
+  }
+  */
+  String username,
+  String activeID,
+  [String? validate]
+) async {
+  final url = '${settings.endpoint}/locationSignIn';
+  final headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ${await getToken()}',
+  };
+  final body = jsonEncode({
+    'username': username,
+    'activeID': activeID,
+    'locationText': settings.locationText,
+    'locationLatitude': settings.latitude,
+    'locationLongitude': settings.longitude,
+    'validate': validate,
+  });
+
+  try {
+    final response = await http
+        .post(
+          Uri.parse(url),
+          headers: headers,
+          body: body,
+        )
+        .timeout(const Duration(seconds: 5));
+    final Map<String, dynamic> responseBody = jsonDecode(response.body);
+    return responseBody;
+  } on TimeoutException {
+    return {
+      'success': false,
+      'detail': '请求超时，请检查网络',
+    };
+  }
+}
+
+Future<Map<String, dynamic>> qrcodeSignIn(
+  /* return format:
+  {
+    'success': bool,
+    'detail': null | String, // if success is true, data is null, else data is String (error message)
+  }
+  */
+  String username,
+  String activeID,
+  String enc,
+  [String? validate]
+) async {
+  final url = '${settings.endpoint}/qrcodeSignIn';
+  final headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ${await getToken()}',
+  };
+  final body = jsonEncode({
+    'username': username,
+    'activeID': activeID,
+    'enc': enc,
+    'validate': validate,
+  });
+
+  try {
+    final response = await http
+        .post(
+          Uri.parse(url),
+          headers: headers,
+          body: body,
+        )
+        .timeout(const Duration(seconds: 5));
+    final Map<String, dynamic> responseBody = jsonDecode(response.body);
+    return responseBody;
+  } on TimeoutException {
+    return {
+      'success': false,
+      'detail': '请求超时，请检查网络',
+    };
+  }
+}
+
+Future<Map<String, dynamic>> signcodeSignIn(
+  /* return format:
+  {
+    'success': bool,
+    'detail': null | String, // if success is true, data is null, else data is String (error message)
+  }
+  */
+  String username,
+  String activeID,
+  String signcode,
+  [String? validate]
+) async {
+  final url = '${settings.endpoint}/signcodeSignIn';
+  final headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ${await getToken()}',
+  };
+  final body = jsonEncode({
+    'username': username,
+    'activeID': activeID,
+    'signcode': signcode,
+    'validate': validate,
+  });
+
+  try {
+    final response = await http
+        .post(
+          Uri.parse(url),
+          headers: headers,
+          body: body,
+        )
+        .timeout(const Duration(seconds: 5));
+    final Map<String, dynamic> responseBody = jsonDecode(response.body);
+    return responseBody;
+  } on TimeoutException {
+    return {
+      'success': false,
+      'detail': '请求超时，请检查网络',
+    };
+  }
+}

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cxutils/network/api.dart' as api;
+import 'package:cxutils/pages/home/home_page.dart';
+import 'package:cxutils/utils/signin_logic.dart';
 
 class SignInPage extends StatefulWidget {
   final List<String> selectedUsernames;
@@ -22,7 +24,10 @@ class _SignInPageState extends State<SignInPage> {
   String? _error;
   Map<String, dynamic>? _signInDetail;
   List<String> fetchedValidateCode = [];
-
+  // signin result
+  bool? _signInOverallSuccess;
+  String? _signInErrorData;
+  List<Map<String, dynamic>> _signInResults = []; // results for each user
   @override
   void initState() {
     super.initState();
@@ -72,23 +77,29 @@ class _SignInPageState extends State<SignInPage> {
             );
         }
       }
-
-      // use different signin api function based on type
-      final type = detail['type'];
-      if (type == 0) { // normal
-        print('签到类型: 0 (普通)');
-      } else if (type == 2) { // qrcode
-        print('签到类型: 2 (二维码)');
-      } else if (type == 4) { // location
-        print('签到类型: 4 (定位)');
-      } else if (type == 3 || type == 5) { // gesture | signcode
-        print('签到类型: $type (手势/签到码 合并类型)');
-      } else {
-        print('未知签到类型: $type');
+      
+      // perform sign-in
+      final int type = detail['type'];
+      final results = await signInAll(
+        type,
+        widget.selectedUsernames,
+        widget.selectedActiveID,
+        validateCodes: detail['needValidation'] == true ? fetchedValidateCode : null,
+      );
+      final overallSuccess = results.every((r) => r['success'] == true);
+      String? errorData;
+      if (!overallSuccess) {
+        errorData = results
+            .where((r) => r['success'] != true)
+            .map((r) => '${r['username']}: ${r['detail'] ?? '未知错误'}')
+            .join('\n');
       }
 
       setState(() {
         _signInDetail = detail;
+        _signInResults = results;
+        _signInOverallSuccess = overallSuccess;
+        _signInErrorData = errorData;
         _loading = false;
       });
     } catch (e) {
@@ -103,46 +114,97 @@ class _SignInPageState extends State<SignInPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('签到')),
-      body: Center(
-        child: _loading
-            ? SafeArea(
-                child: Column(
+      body: SafeArea(
+        child: Center(
+          child: _loading
+              ? Column(
                   mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: const [
                     CircularProgressIndicator(),
                     SizedBox(height: 16),
-                  Text('读取签到活动信息'),
-                ],
-              ))
-            : _error != null
-                ? Text(_error!)
-                : SafeArea(child: _buildResult()),
+                    Text('读取签到活动信息'),
+                  ],
+                )
+              : _error != null
+                  ? _buildLoadError()
+                  : _buildResult(),
+        ),
       ),
     );
   }
 
   Widget _buildResult() {
+    final success = _signInOverallSuccess == true;
+    final icon = success ? Icons.check_circle_rounded : Icons.cancel_rounded;
+    final color = success ? Colors.green : Colors.red;
+    final text = success ? '签到成功！' : '签到失败！';
+    final successCount = _signInResults.where((r) => r['success'] == true).length;
+    final total = _signInResults.length;
     final type = _signInDetail?['type'];
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('类型: $type'),
-          const SizedBox(height: 8),
-          Text('需要验证: ${_signInDetail?['needValidation']}'),
-          if (fetchedValidateCode.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            const Text('验证码列表:'),
-            for (int i = 0; i < fetchedValidateCode.length; i++)
-              Text('${widget.selectedUsernames[i]} -> ${fetchedValidateCode[i]}'),
-          ],
-          const SizedBox(height: 24),
-          const Text('（后续签到逻辑待实现）'),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: color, size: 72),
+        const SizedBox(height: 16),
+        Text(
+          text,
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color),
+        ),
+        if (type != null) ...[
+          const SizedBox(height: 4),
+          Text('类型: $type', style: const TextStyle(fontSize: 12, color: Colors.grey)),
         ],
-      ),
+        if (total > 1) ...[
+          const SizedBox(height: 8),
+          Text('成功: $successCount / $total', style: TextStyle(color: color, fontSize: 14)),
+        ],
+        if (!success && _signInErrorData != null) ...[
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Text(
+              _signInErrorData!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 14, color: Colors.redAccent),
+            ),
+          ),
+        ],
+        const SizedBox(height: 40),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const HomePage()),
+              (route) => false,
+            );
+          },
+          child: const Text('返回主页'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoadError() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.error_outline, size: 72, color: Colors.red),
+        const SizedBox(height: 16),
+        Text(
+          _error ?? '未知错误',
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.red),
+        ),
+        const SizedBox(height: 40),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const HomePage()),
+              (route) => false,
+            );
+          },
+          child: const Text('返回主页'),
+        ),
+      ],
     );
   }
 }
