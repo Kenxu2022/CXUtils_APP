@@ -24,17 +24,25 @@ class Course {
 
 Future<Map<String, List<Course>>> fetchCoursesForUsers(
     List<String> usernames) async {
-  Map<String, List<Course>> userCourses = {};
-  for (String username in usernames) {
-    final result = await getCourse(username);
+  final userCourses = <String, List<Course>>{};
+  final futures = usernames.map((username) => getCourse(username)).toList();
+
+  final results = await Future.wait(futures);
+
+  for (int i = 0; i < results.length; i++) {
+    final result = results[i];
+    final username = usernames[i];
+
     if (result['success']) {
       final List<dynamic> courseData = result['data'];
       userCourses[username] =
           courseData.map((data) => Course.fromJson(data)).toList();
     } else {
-      throw Exception('Failed to load courses for $username: ${result['data']}');
+      throw Exception(
+          'Failed to load courses for $username: ${result['data']}');
     }
   }
+
   return userCourses;
 }
 
