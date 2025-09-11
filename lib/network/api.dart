@@ -386,7 +386,7 @@ Future<Map<String, dynamic>> qrcodeSignIn(
   }
 }
 
-Future<Map<String, dynamic>> signcodeSignIn(
+Future<Map<String, dynamic>> signCodeSignIn(
   /* return format:
   {
     'success': bool,
@@ -395,7 +395,7 @@ Future<Map<String, dynamic>> signcodeSignIn(
   */
   String username,
   String activeID,
-  String signcode,
+  String signCode,
   [String? validate]
 ) async {
   final url = '${settings.endpoint}/signcodeSignIn';
@@ -406,7 +406,7 @@ Future<Map<String, dynamic>> signcodeSignIn(
   final body = jsonEncode({
     'username': username,
     'activeID': activeID,
-    'signcode': signcode,
+    'signCode': signCode,
     'validate': validate,
   });
 

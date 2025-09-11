@@ -5,6 +5,7 @@ Future<List<Map<String, dynamic>>> signInAll(
   List<String> usernames,
   String activeID, {
   List<String>? validateCodes,
+  String? signCode,
 }) async {
   final List<Future<Map<String, dynamic>>> futures = [];
   for (int i = 0; i < usernames.length; i++) {
@@ -24,8 +25,8 @@ Future<List<Map<String, dynamic>>> signInAll(
         futures.add(api.locationSignIn(username, activeID, validate));
         break;
       case 3:
-      case 5: // signcode
-        futures.add(api.signcodeSignIn(username, activeID, '123456', validate));
+      case 5: // signCode
+        futures.add(api.signCodeSignIn(username, activeID, signCode!, validate));
         break;
       default:
         futures.add(Future.value({

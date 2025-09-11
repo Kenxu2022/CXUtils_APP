@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cxutils/network/api.dart' as api;
 import 'package:cxutils/pages/home/home_page.dart';
 import 'package:cxutils/utils/signin_logic.dart';
+import 'package:cxutils/pages/home/signcode_input_page.dart';
 
 class SignInPage extends StatefulWidget {
   final List<String> selectedUsernames;
@@ -77,14 +78,29 @@ class _SignInPageState extends State<SignInPage> {
             );
         }
       }
-      
-      // perform sign-in
+      // prepare signCode for type 3/5 by navigating to input page
       final int type = detail['type'];
+      String? signCode;
+      if (type == 3 || type == 5) {
+        signCode = await Navigator.of(context).push<String>(
+          MaterialPageRoute(builder: (_) => const SigncodeInputPage()),
+        );
+        if (signCode == null || signCode.isEmpty) {
+          setState(() {
+            _error = '未输入签到码，已取消';
+            _loading = false;
+          });
+          return;
+        }
+      }
+
+      // perform sign-in
       final results = await signInAll(
         type,
         widget.selectedUsernames,
         widget.selectedActiveID,
         validateCodes: detail['needValidation'] == true ? fetchedValidateCode : null,
+        signCode: signCode,
       );
       final overallSuccess = results.every((r) => r['success'] == true);
       String? errorData;
