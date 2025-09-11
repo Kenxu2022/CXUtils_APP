@@ -62,60 +62,64 @@ class _ActivitySelectionPageState extends State<ActivitySelectionPage> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('选择活动'),
-      ),
+      appBar: AppBar(title: const Text('选择活动')),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const SafeArea(child: Center(child: CircularProgressIndicator()))
           : _error != null
-              ? Center(child: Text(_error!))
-              : _activities.isEmpty
-                  ? Center(child: Text('没有可用的活动'))
-                  : Column(
-                      children: [
-                        Expanded(
-                          child: ListView.builder(
-                            itemCount: _activities.length,
-                            itemBuilder: (context, index) {
-                          final activity = _activities[index];
-                          return Container(
-                            color: colorScheme.surface,
-                            margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-                            child: ListTile(
-                              leading: Radio<String>(
-                                value: activity['activeID'].toString(),
-                                groupValue: _selectedActiveID,
-                                onChanged: (String? value) {
-                                  setState(() {
-                                    _selectedActiveID = value;
-                                  });
-                                },
-                              ),
-                              title: Text(activity['name']),
-                              subtitle: Text(
-                                  '开始: ${activity['startTime']} - 结束: ${activity['endTime']}'),
+          ? SafeArea(child: Center(child: Text(_error!)))
+          : _activities.isEmpty
+          ? SafeArea(child: Center(child: Text('没有可用的活动')))
+          : SafeArea(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: _activities.length,
+                      itemBuilder: (context, index) {
+                        final activity = _activities[index];
+                        return Container(
+                          color: colorScheme.surface,
+                          margin: const EdgeInsets.symmetric(
+                            vertical: 4.0,
+                            horizontal: 8.0,
+                          ),
+                          child: ListTile(
+                            leading: Radio<String>(
+                              value: activity['activeID'].toString(),
+                              groupValue: _selectedActiveID,
+                              onChanged: (String? value) {
+                                setState(() {
+                                  _selectedActiveID = value;
+                                });
+                              },
                             ),
-                          );
+                            title: Text(activity['name']),
+                            subtitle: Text(
+                              '开始: ${activity['startTime']} - 结束: ${activity['endTime']}',
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Center(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // 之后的逻辑暂时留空
+                          if (_selectedActiveID != null) {
+                            // ignore: avoid_print
+                            print('Selected Active ID: $_selectedActiveID');
+                          }
                         },
+                        child: const Text('下一步'),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Center(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            // 之后的逻辑暂时留空
-                            if (_selectedActiveID != null) {
-                              // ignore: avoid_print
-                              print('Selected Active ID: $_selectedActiveID');
-                            }
-                          },
-                          child: const Text('下一步'),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 }
