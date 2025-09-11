@@ -31,33 +31,46 @@ class _CourseSelectionPageState extends State<CourseSelectionPage> {
       Map<String, List<Course>> allCourses) {
     setState(() {
       if (selectedCourse != null) {
-        _selectedCourse[username] = selectedCourse;
-
-        // Auto-select for other users if this is the first selection
-        if (widget.selectedUsernames.length > 1 &&
-            _selectedCourse.length == 1) {
+        // For multiple users, any selection change should trigger a sync attempt
+        if (widget.selectedUsernames.length > 1) {
+          final Map<String, Course> newSelections = {};
           bool allFound = true;
-          for (var otherUser in widget.selectedUsernames) {
-            if (otherUser == username) continue;
+
+          // Try to find the selected course for all users
+          for (var user in widget.selectedUsernames) {
             try {
-              final matchingCourse = allCourses[otherUser]!
+              final matchingCourse = allCourses[user]!
                   .firstWhere((course) => course.name == selectedCourse.name);
-              _selectedCourse[otherUser] = matchingCourse;
+              newSelections[user] = matchingCourse;
             } catch (e) {
               allFound = false;
+              break; // Stop if any user doesn't have the course
             }
           }
-          if (!allFound) {
+
+          if (allFound) {
+            _selectedCourse.clear();
+            _selectedCourse.addAll(newSelections);
+          } else {
+            // If sync fails, show a message and revert to individual selection
+            _selectedCourse.clear();
+            _selectedCourse[username] = selectedCourse; // Keep only the current user's selection
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                  content: Text('找不到相同的课程，请单独签到')),
+                  content: Text('部分用户找不到相同课程，请单独签到或更换课程')),
             );
-            // Clear selection because auto-selection failed
-            _selectedCourse.clear();
           }
+        } else {
+          // For a single user, just update the selection
+          _selectedCourse[username] = selectedCourse;
         }
       } else {
-        _selectedCourse.remove(username);
+        // If a selection is cleared, clear all selections for multi-user case
+        if (widget.selectedUsernames.length > 1) {
+          _selectedCourse.clear();
+        } else {
+          _selectedCourse.remove(username);
+        }
       }
       _checkIfAllSelected();
     });
