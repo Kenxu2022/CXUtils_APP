@@ -95,7 +95,7 @@ class _ActivitySelectionPageState extends State<ActivitySelectionPage> {
                             ),
                             title: Text(activity['name']),
                             subtitle: Text(
-                              '开始: ${activity['startTime']} - 结束: ${activity['endTime']}',
+                              '开始: ${activity['startTime']}\n结束: ${activity['endTime']}',
                             ),
                           ),
                         );
