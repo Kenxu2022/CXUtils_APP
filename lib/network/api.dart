@@ -250,7 +250,7 @@ Future<Map<String, dynamic>> getValidateCode(
           headers: headers,
           body: body,
         )
-        .timeout(const Duration(seconds: 5));
+        .timeout(const Duration(seconds: 15));
     final Map<String, dynamic> responseBody = jsonDecode(response.body);
     return responseBody;
   } on TimeoutException {
