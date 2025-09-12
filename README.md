@@ -1,16 +1,42 @@
-# cxutils
+# CXUtils
 
-A new Flutter project.
+[CXUtils](https://github.com/Kenxu2022/CXUtils) 的前端仓库，使用 Flutter 构建。
 
-## Getting Started
+# 使用
 
-This project is a starting point for a Flutter application.
+## Android
+直接下载安装 Release 中的安装包，一般而言使用 `app-arm64-v8a-release.apk` 这个安装包即可。
 
-A few resources to get you started if this is your first Flutter project:
+## 其他平台
+需要自行部署网页端，以下是简要流程：  
+1. 下载并解压 Release 中的 `web.zip` 文件至可通过公网访问的服务器上
+2. 在 Nginx 配置文件中添加站点配置
+3. 配置 HTTPS 证书
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+> 由于网页需要调用摄像头，因此必须使用 HTTPS 协议连接至服务器
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+**特别提醒：若前后端域名不一致，需要在后端 Nginx 配置文件反向代理部分添加 CORS 策略**  
+```conf
+# CORS Policy
+add_header 'Access-Control-Allow-Origin' '$FRONTEND_DOMAIN' always;
+add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+add_header 'Access-Control-Allow-Headers' 'Content-Type, Authorization' always;
+add_header 'Access-Control-Allow-Credentials' 'true' always;
+# OPTION Request
+if ($request_method = OPTIONS) {
+    add_header 'Access-Control-Max-Age' 86400;
+    add_header 'Content-Length' 0;
+    add_header 'Content-Type' 'text/plain charset=UTF-8';
+    return 204;
+}
+```
+
+# 配置
+
+填写服务端地址，账号及密码，并同意摄像头权限。
+
+关于定位：需要填写用于定位签到的地址（经纬度）和显示文字，相关信息可前往[百度坐标拾取系统](https://lbs.baidu.com/maptool/getpoint)获取。
+
+# 许可
+
+GNU GPLv3
