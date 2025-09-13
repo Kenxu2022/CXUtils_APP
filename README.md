@@ -24,6 +24,10 @@ add_header 'Access-Control-Allow-Headers' 'Content-Type, Authorization' always;
 add_header 'Access-Control-Allow-Credentials' 'true' always;
 # OPTION Request
 if ($request_method = OPTIONS) {
+    add_header 'Access-Control-Allow-Origin' '$FRONTEND_DOMAIN' always;
+    add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+    add_header 'Access-Control-Allow-Headers' 'Content-Type, Authorization' always;
+    add_header 'Access-Control-Allow-Credentials' 'true' always;
     add_header 'Access-Control-Max-Age' 86400;
     add_header 'Content-Length' 0;
     add_header 'Content-Type' 'text/plain charset=UTF-8';
