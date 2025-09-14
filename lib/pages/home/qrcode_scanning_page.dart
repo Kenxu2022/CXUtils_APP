@@ -13,9 +13,33 @@ class _QrcodeScanningPageState extends State<QrcodeScanningPage> {
     autoZoom: true,
   );
   bool _handled = false;
+  double _baseZoom = 0.0;
+  bool _baseZoomCaptured = false;
   double _currentZoom = 0.0;
   double _startZoom = 0.0;
   bool _isScaling = false;
+
+  @override
+  void initState() {
+    super.initState();
+    controller.addListener(_onControllerChanged);
+  }
+
+  void _onControllerChanged() {
+    final state = controller.value;
+    if (!_baseZoomCaptured && state.isInitialized) {
+      _baseZoomCaptured = true;
+      _baseZoom = state.zoomScale;
+      _currentZoom = _baseZoom;
+      if (mounted) setState(() {});
+    }
+  }
+
+  @override
+  void dispose() {
+    controller.removeListener(_onControllerChanged);
+    super.dispose();
+  }
 
   void _onDetect(BarcodeCapture capture) {
     if (_handled) return;
@@ -33,7 +57,6 @@ class _QrcodeScanningPageState extends State<QrcodeScanningPage> {
         }
       }
     }
-    // 未识别到 enc，给出轻提示但继续扫描
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -68,23 +91,32 @@ class _QrcodeScanningPageState extends State<QrcodeScanningPage> {
                 borderRadius: BorderRadius.circular(12),
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
+                  onDoubleTap: () {
+                    final isAtBase = (_currentZoom - _baseZoom).abs() < 1e-3;
+                    final target = isAtBase
+                        ? (_baseZoom + 0.3).clamp(0.0, 1.0)
+                        : _baseZoom;
+                    _currentZoom = target;
+                    controller.setZoomScale(_currentZoom);
+                  },
                   onScaleStart: (details) {
                     if (details.pointerCount >= 2) {
                       _isScaling = true;
-                      _startZoom = _currentZoom;
+                      _startZoom = controller.value.zoomScale;
                     }
                   },
                   onScaleUpdate: (details) {
                     if (!_isScaling || details.pointerCount < 2) return;
                     final delta = details.scale - 1.0;
-                    final scaled = (_startZoom + delta).clamp(0.0, 1.0).toDouble();
-                    if (scaled != _currentZoom) {
-                      _currentZoom = scaled;
+                    final next = (_startZoom + delta).clamp(0.0, 1.0).toDouble();
+                    if ((next - _currentZoom).abs() >= 1e-3) {
+                      _currentZoom = next;
                       controller.setZoomScale(_currentZoom);
                     }
                   },
                   onScaleEnd: (details) {
                     _isScaling = false;
+                    _currentZoom = controller.value.zoomScale;
                   },
                   child: SizedBox(
                     width: 350,
