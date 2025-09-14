@@ -94,7 +94,7 @@ class _QrcodeScanningPageState extends State<QrcodeScanningPage> {
                   onDoubleTap: () {
                     final isAtBase = (_currentZoom - _baseZoom).abs() < 1e-3;
                     final target = isAtBase
-                        ? (_baseZoom + 0.3).clamp(0.0, 1.0)
+                        ? (_baseZoom + 0.3)
                         : _baseZoom;
                     _currentZoom = target;
                     controller.setZoomScale(_currentZoom);
@@ -108,7 +108,7 @@ class _QrcodeScanningPageState extends State<QrcodeScanningPage> {
                   onScaleUpdate: (details) {
                     if (!_isScaling || details.pointerCount < 2) return;
                     final delta = details.scale - 1.0;
-                    final next = (_startZoom + delta).clamp(0.0, 1.0).toDouble();
+                    final next = (_startZoom + delta);
                     if ((next - _currentZoom).abs() >= 1e-3) {
                       _currentZoom = next;
                       controller.setZoomScale(_currentZoom);
