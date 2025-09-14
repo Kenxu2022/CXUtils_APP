@@ -10,7 +10,31 @@
 ## 其他平台
 需要自行部署网页端，以下是简要流程：  
 1. 下载并解压 Release 中的 `web.zip` 文件至可通过公网访问的服务器上
-2. 在 Nginx 配置文件中添加站点配置
+2. 在 Nginx 配置文件中添加站点配置，以下提供 Nginx 配置参考：
+   ```conf
+    server {
+        listen 80;
+        listen [::]:80;
+        server_name $SERVER_NAME;
+        return 301 https://$host$request_uri;
+    }
+    server {
+        listen 443 ssl;
+        listen [::]:443 ssl;
+        http2 on;
+        server_name $SERVER_NAME;
+        root $WEBROOT;
+        ssl_certificate $PATH_TO_CERTIFICATE;
+        ssl_certificate_key $PATH_TO_KEY;
+        # header for WASM
+        add_header Cross-Origin-Embedder-Policy credentialless;
+        add_header Cross-Origin-Opener-Policy same-origin;
+    }
+   ```
+   为了确保 WASM 功能的正确运行，你需要修改 Nginx 自带的 mime.types 文件，将 `.mjs` 后缀添加至 `application/javascript` 中：
+   ```conf
+    application/javascript                           js mjs;
+   ```
 3. 配置 HTTPS 证书
 
 > 由于网页需要调用摄像头，因此必须使用 HTTPS 协议连接至服务器
