@@ -28,6 +28,7 @@ class _SignInPageState extends State<SignInPage> {
   List<String> fetchedValidateCode = [];
   // signin result
   bool? _signInOverallSuccess;
+  bool? _signInPartialSuccess;
   String? _signInErrorData;
   List<Map<String, dynamic>> _signInResults = []; // results for each user
   @override
@@ -79,10 +80,11 @@ class _SignInPageState extends State<SignInPage> {
             );
         }
       }
-      // prepare signCode for type 3/5 by navigating to input page
+
       final int type = detail['type'];
       String? signCode;
       String? enc;
+      // sign code input for type 3/5
       if (type == 3 || type == 5) {
         signCode = await Navigator.of(context).push<String>(
           MaterialPageRoute(builder: (_) => const SigncodeInputPage()),
@@ -95,7 +97,7 @@ class _SignInPageState extends State<SignInPage> {
           return;
         }
       } else if (type == 2) {
-        // 扫码获取 enc
+        // get enc by scanning QR code for type 2
         enc = await Navigator.of(context).push<String>(
           MaterialPageRoute(builder: (_) => const QrcodeScanningPage()),
         );
@@ -130,6 +132,7 @@ class _SignInPageState extends State<SignInPage> {
         _signInDetail = detail;
         _signInResults = results;
         _signInOverallSuccess = overallSuccess;
+        _signInPartialSuccess = results.any((r) => r['success'] == true);
         _signInErrorData = errorData;
         _loading = false;
       });
@@ -166,9 +169,22 @@ class _SignInPageState extends State<SignInPage> {
 
   Widget _buildResult() {
     final success = _signInOverallSuccess == true;
-    final icon = success ? Icons.check_circle_rounded : Icons.cancel_rounded;
-    final color = success ? Colors.green : Colors.red;
-    final text = success ? '签到成功！' : '签到失败！';
+    late IconData icon;
+    late Color color;
+    late String text;
+    if (success) {
+      icon = Icons.check_circle_rounded;
+      color = Colors.green;
+      text = '签到成功！';
+    } else if (_signInPartialSuccess == true) {
+      icon = Icons.warning_amber_rounded;
+      color = Colors.orange;
+      text = '部分签到成功！';
+    } else {
+      icon = Icons.cancel_rounded;
+      color = Colors.red;
+      text = '签到失败！';
+    }
     final successCount = _signInResults.where((r) => r['success'] == true).length;
     final total = _signInResults.length;
     final type = _signInDetail?['type'];
