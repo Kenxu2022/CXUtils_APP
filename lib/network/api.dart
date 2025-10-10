@@ -157,6 +157,7 @@ Future<Map<String, dynamic>> getActivity(
     'username': username,
     'courseID': courseID,
     'classID': classID,
+    'activityType': [2] // currently supported activity type 
   });
 
   try {
