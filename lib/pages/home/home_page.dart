@@ -56,56 +56,90 @@ class _HomePageState extends State<HomePage> {
                     ),
                   )
                 else
-                  ListView.builder(
-                    itemCount: credentialsProvider.credentials.length,
-                    itemBuilder: (context, index) {
-                      final username = credentialsProvider.credentials[index];
-                      return Card(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 4,
-                        ),
-                        child: ListTile(
-                          leading: Checkbox(
-                            value: _selectedUsername.contains(username),
+                  Column(
+                    children: [
+                      Builder(
+                        builder: (context) {
+                          final credentials = credentialsProvider.credentials;
+                          final allSelected = credentials.isNotEmpty &&
+                              credentials.every(
+                                (username) => _selectedUsername.contains(username),
+                              );
+                          return CheckboxListTile(
+                            title: const Text('全选'),
+                            value: allSelected,
+                            controlAffinity: ListTileControlAffinity.leading,
                             onChanged: (bool? value) {
                               setState(() {
                                 if (value == true) {
-                                  _selectedUsername.add(username);
+                                  _selectedUsername
+                                    ..clear()
+                                    ..addAll(credentials);
                                 } else {
-                                  _selectedUsername.remove(username);
+                                  _selectedUsername.clear();
                                 }
                               });
                             },
-                          ),
-                          title: Text(username),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () async {
-                              final result = await deleteCredential(username);
-                              if (result['success'] == true) {
-                                await credentialsProvider.removeUser(username);
-                                if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('成功移除用户$username')),
-                                  );
-                                }
-                              } else {
-                                if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        '移除用户失败: ${result['detail'] ?? '未知错误'}',
-                                      ),
-                                    ),
-                                  );
-                                }
-                              }
-                            },
-                          ),
+                          );
+                        },
+                      ),
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: credentialsProvider.credentials.length,
+                          itemBuilder: (context, index) {
+                            final username = credentialsProvider.credentials[index];
+                            return Card(
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 4,
+                              ),
+                              child: ListTile(
+                                leading: Checkbox(
+                                  value: _selectedUsername.contains(username),
+                                  onChanged: (bool? value) {
+                                    setState(() {
+                                      if (value == true) {
+                                        _selectedUsername.add(username);
+                                      } else {
+                                        _selectedUsername.remove(username);
+                                      }
+                                    });
+                                  },
+                                ),
+                                title: Text(username),
+                                trailing: IconButton(
+                                  icon: const Icon(Icons.delete),
+                                  onPressed: () async {
+                                    final result = await deleteCredential(username);              
+                                    if (result['success'] == true) {
+                                      await credentialsProvider.removeUser(username);
+                                      setState(() {
+                                        _selectedUsername.remove(username);
+                                      });
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('成功移除用户$username')),
+                                        );
+                                      }
+                                    } else {
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              '移除用户失败: ${result['detail'] ?? '未知错误'}',
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  },
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
+                      ),
+                    ],
                   ),
                 if (_selectedUsername.isNotEmpty)
                   Align(
