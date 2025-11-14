@@ -26,7 +26,10 @@ class _HomePageState extends State<HomePage> {
             message: "设置",
             child: IconButton(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsPage()),);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SettingsPage()),
+                );
               },
               icon: Icon(Icons.settings_rounded),
             ),
@@ -59,7 +62,9 @@ class _HomePageState extends State<HomePage> {
                       final username = credentialsProvider.credentials[index];
                       return Card(
                         margin: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 4),
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
                         child: ListTile(
                           leading: Checkbox(
                             value: _selectedUsername.contains(username),
@@ -82,9 +87,7 @@ class _HomePageState extends State<HomePage> {
                                 await credentialsProvider.removeUser(username);
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('成功移除用户$username'),
-                                    ),
+                                    SnackBar(content: Text('成功移除用户$username')),
                                   );
                                 }
                               } else {
@@ -92,7 +95,8 @@ class _HomePageState extends State<HomePage> {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(
-                                          '移除用户失败: ${result['detail'] ?? '未知错误'}'),
+                                        '移除用户失败: ${result['detail'] ?? '未知错误'}',
+                                      ),
                                     ),
                                   );
                                 }
@@ -143,8 +147,10 @@ class _HomePageState extends State<HomePage> {
   void _showAddCredentialDialog(BuildContext context) {
     final usernameController = TextEditingController();
     final passwordController = TextEditingController();
-    final credentialsProvider =
-        Provider.of<CredentialsProvider>(context, listen: false);
+    final credentialsProvider = Provider.of<CredentialsProvider>(
+      context,
+      listen: false,
+    );
 
     showDialog(
       context: context,
@@ -208,4 +214,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
