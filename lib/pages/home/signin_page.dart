@@ -29,7 +29,7 @@ class _SignInPageState extends State<SignInPage> {
   // signin result
   bool? _signInOverallSuccess;
   bool? _signInPartialSuccess;
-  String? _signInErrorData;
+  Map<String, String>? _errorData;
   List<Map<String, dynamic>> _signInResults = []; // results for each user
   @override
   void initState() {
@@ -111,7 +111,7 @@ class _SignInPageState extends State<SignInPage> {
       }
 
       // perform sign-in
-      final results = await signInAll(
+      final List<Map<String, dynamic>> rawResults = await signInAll(
         type,
         widget.selectedUsernames,
         widget.selectedActiveID,
@@ -119,21 +119,40 @@ class _SignInPageState extends State<SignInPage> {
         signCode: signCode,
         enc: enc
       );
+
+      // override signin status if already signed in
+      final results = rawResults.map<Map<String, dynamic>>((r) {
+        if (!r['success']) {
+          final detail = r['detail'];
+          final alreadySigned = detail.trim() == '您已签到过了';
+          if (alreadySigned && r['success'] != true) {
+            return {
+              ...r,
+              'success': true,
+            };
+          }
+        }
+        return r;
+      }).toList(growable: false);
+
+      final overallRawSuccess = rawResults.every((r) => r['success'] == true);
       final overallSuccess = results.every((r) => r['success'] == true);
-      String? errorData;
-      if (!overallSuccess) {
-        errorData = results
+      // use rawResult to preserve all detail info
+      if (!overallRawSuccess) {
+        _errorData = Map.fromEntries(
+          rawResults
             .where((r) => r['success'] != true)
-            .map((r) => '${r['username']}: ${r['detail'] ?? '未知错误'}')
-            .join('\n');
+            .map((r) => MapEntry(
+              r['username'].toString(), (r['detail'] ?? '未知错误').toString(),
+            )),
+        );
       }
 
       setState(() {
         _signInDetail = detail;
         _signInResults = results;
         _signInOverallSuccess = overallSuccess;
-        _signInPartialSuccess = results.any((r) => r['success'] == true);
-        _signInErrorData = errorData;
+        _signInPartialSuccess = results.where((r) => r['success'] == true).isNotEmpty && results.where((r) => r['success'] == true).length < results.length;
         _loading = false;
       });
     } catch (e) {
@@ -205,14 +224,26 @@ class _SignInPageState extends State<SignInPage> {
           const SizedBox(height: 8),
           Text('成功: $successCount / $total', style: TextStyle(color: color, fontSize: 14)),
         ],
-        if (!success && _signInErrorData != null) ...[
+        if (_errorData != null) ...[
           const SizedBox(height: 12),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Text(
-              _signInErrorData!,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14, color: Colors.redAccent),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: _errorData!.entries.map((entry) {
+                final message = entry.value;
+                final color = message == '您已签到过了'
+                    ? Colors.grey
+                    : Colors.redAccent;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2.0),
+                  child: Text(
+                    '${entry.key}: $message',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: color),
+                  ),
+                );
+              }).toList(),
             ),
           ),
         ],
