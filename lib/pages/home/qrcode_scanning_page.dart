@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
@@ -12,6 +13,7 @@ class _QrcodeScanningPageState extends State<QrcodeScanningPage> {
   final MobileScannerController controller = MobileScannerController(
     autoZoom: true,
   );
+  final String scriptUrl = "barcode.js";
   bool _handled = false;
   double _baseZoom = 0.0;
   bool _baseZoomCaptured = false;
@@ -22,6 +24,9 @@ class _QrcodeScanningPageState extends State<QrcodeScanningPage> {
   @override
   void initState() {
     super.initState();
+    if (kIsWeb) {
+      MobileScannerPlatform.instance.setBarcodeLibraryScriptUrl(scriptUrl);
+    }
     controller.addListener(_onControllerChanged);
   }
 
