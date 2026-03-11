@@ -115,6 +115,7 @@ class _SignInPageState extends State<SignInPage> {
         type,
         widget.selectedUsernames,
         widget.selectedActiveID,
+        detail['needLocation'],
         validateCodes: detail['needValidation'] == true ? fetchedValidateCode : null,
         signCode: signCode,
         enc: enc

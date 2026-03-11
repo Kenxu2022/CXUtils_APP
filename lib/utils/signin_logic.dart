@@ -3,7 +3,8 @@ import 'package:cxutils/network/api.dart' as api;
 Future<List<Map<String, dynamic>>> signInAll(
   int type,
   List<String> usernames,
-  String activeID, {
+  String activeID, 
+  bool needLocation, {
   List<String>? validateCodes,
   String? enc,
   String? signCode,
@@ -20,7 +21,7 @@ Future<List<Map<String, dynamic>>> signInAll(
         futures.add(api.normalSignIn(username, activeID, validate));
         break;
       case 2: // qrcode
-        futures.add(api.qrcodeSignIn(username, activeID, enc!, validate));
+        futures.add(api.qrcodeSignIn(username, activeID, enc!, needLocation, validate));
         break;
       case 4: // location
         futures.add(api.locationSignIn(username, activeID, validate));

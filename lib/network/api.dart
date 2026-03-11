@@ -186,6 +186,7 @@ Future<Map<String, dynamic>> getSignInDetail(
       format: {
           'type': int, --> 0-normal, 2-QRCode, 3-gesture, 4-location, 5-signcode
           'needValidation': bool,
+          'needLocation': bool,
         }
   }
   */
@@ -355,6 +356,7 @@ Future<Map<String, dynamic>> qrcodeSignIn(
   String username,
   String activeID,
   String enc,
+  bool needLocation,
   [String? validate]
 ) async {
   final url = '${settings.endpoint}/qrcodeSignIn';
@@ -362,7 +364,16 @@ Future<Map<String, dynamic>> qrcodeSignIn(
     'Content-Type': 'application/json',
     'Authorization': 'Bearer ${await getToken()}',
   };
-  final body = jsonEncode({
+  final body = needLocation ? jsonEncode({
+    'username': username,
+    'activeID': activeID,
+    'enc': enc,
+    'locationText': settings.locationText,
+    'locationLatitude': settings.latitude,
+    'locationLongitude': settings.longitude,
+    'validate': validate,
+  }) :
+  jsonEncode({
     'username': username,
     'activeID': activeID,
     'enc': enc,
