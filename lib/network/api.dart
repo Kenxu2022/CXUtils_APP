@@ -157,7 +157,7 @@ Future<Map<String, dynamic>> getActivity(
     'username': username,
     'courseID': courseID,
     'classID': classID,
-    'activityType': [2] // currently supported activity type 
+    'activityType': [2, 42] // currently supported activity type 
   });
 
   try {
@@ -420,6 +420,98 @@ Future<Map<String, dynamic>> signCodeSignIn(
     'activeID': activeID,
     'signCode': signCode,
     'validate': validate,
+  });
+
+  try {
+    final response = await http
+        .post(
+          Uri.parse(url),
+          headers: headers,
+          body: body,
+        )
+        .timeout(const Duration(seconds: 5));
+    final Map<String, dynamic> responseBody = jsonDecode(response.body);
+    return responseBody;
+  } on TimeoutException {
+    return {
+      'success': false,
+      'detail': '请求超时，请检查网络',
+    };
+  }
+}
+
+Future<Map<String, dynamic>> getQuizDetail(
+  /* return format:
+  {
+    'success': bool,
+    'data': List<Map<String, dynamic>> | String, // if success is true, data is List<Map<String, dynamic>>, else data is String (error message)
+      format: [ // list of problems
+            {
+              'title': String, // title of the problem
+              'type': int, --> 0-single choice, 1-multiple choice, 2-fill in the blank, 4-essay, 16-judgment
+              'options': null | Map<dynamic, dynamic>, // ignore when type == 4, key = option name, value = option content
+              'resourceUrl': null | List<String>, // image urls
+            },
+            ...
+          ]
+    'originalData': List<Map<String, dynamic>>
+  }
+  */
+  String username,
+  String activeID, 
+) async {
+  final url = '${settings.endpoint}/getQuizProblem';
+  final headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ${await getToken()}',
+  };
+  final body = jsonEncode({
+    'username': username,
+    'activeID': activeID,
+  });
+
+  try {
+    final response = await http
+        .post(
+          Uri.parse(url),
+          headers: headers,
+          body: body,
+        )
+        .timeout(const Duration(seconds: 5));
+    final Map<String, dynamic> responseBody = jsonDecode(response.body);
+    return responseBody;
+  } on TimeoutException {
+    return {
+      'success': false,
+      'data': '请求超时，请检查网络',
+    };
+  }
+}
+
+Future<Map<String, dynamic>> submitQuizProblem(
+  /* return format:
+  {
+    'success': bool,
+    'detail': null | String, // if success is true, data is null, else data is String (error message)
+  }
+  */
+  String username,
+  String courseID,
+  String classID,
+  String activeID,
+  List<Map<String, dynamic>> data,
+) async {
+  final url = '${settings.endpoint}/submitQuizProblem';
+  final headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ${await getToken()}',
+  };
+  final body = jsonEncode({
+    'username': username,
+    'courseID': courseID,
+    'classID': classID,
+    'activeID': activeID,
+    'data': data,
   });
 
   try {
