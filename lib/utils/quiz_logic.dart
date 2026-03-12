@@ -1,40 +1,5 @@
 import 'package:flutter/material.dart';
 
-/* quiz problem submission format:
-use passed-in originalData and ONLY modify "personAnswer" key (originalData[i].personAnswer) according to the following format:
-single choice (type == 0):
-{
-  "myoption": "A"
-}
-multiple choice (type == 1):
-{
-  "myoption": "AB"
-}
-fill in the blank (type == 2): 
-{
-  "blankAnswer": [
-    {
-      "name": "A", --> option name in data[i].options
-      "content": "xxx"
-    },
-    {
-      "name": "B",
-      "content": "xxx"
-    },
-    ...
-  ]
-}
-essay (type == 4):
-{
-  "content": "xxx",
-  "recs": [] --> leave it blank
-}
-judgement (type == 16):
-{
-  "myoption": "2" // 1 == true, 2 == false
-}
-*/
-
 void initializeQuizAnswerStates({
   required List<Map<String, dynamic>> questions,
   required Map<int, Map<String, TextEditingController>> blankAnswers,

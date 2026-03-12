@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cxutils/network/api.dart' as api;
+import 'package:cxutils/pages/home/quiz_submission_page.dart';
 import 'package:cxutils/utils/quiz_logic.dart' as quiz_logic;
 
 class QuizPage extends StatefulWidget {
@@ -26,6 +27,7 @@ class _QuizPageState extends State<QuizPage> {
   bool _isLoading = true;
   String? _error;
   List<Map<String, dynamic>> _questions = [];
+  List<Map<String, dynamic>> _originalData = [];
 
   final Map<int, String> _singleChoiceAnswers = {};
   final Map<int, Set<String>> _multipleChoiceAnswers = {};
@@ -61,6 +63,9 @@ class _QuizPageState extends State<QuizPage> {
 
       if (response['success'] == true) {
         final questions = List<Map<String, dynamic>>.from(response['data']);
+        final originalData = List<Map<String, dynamic>>.from(
+          response['originalData'],
+        );
         quiz_logic.initializeQuizAnswerStates(
           questions: questions,
           blankAnswers: _blankAnswers,
@@ -68,6 +73,7 @@ class _QuizPageState extends State<QuizPage> {
         );
         setState(() {
           _questions = questions;
+          _originalData = originalData;
           _isLoading = false;
         });
       } else {
@@ -412,7 +418,49 @@ class _QuizPageState extends State<QuizPage> {
               ElevatedButton(
                 onPressed: _allAnswered
                     ? () {
-                        // TODO: add submit behavior.
+                        final blankAnswerTexts = _blankAnswers.map(
+                          (questionIndex, controllers) => MapEntry(
+                            questionIndex,
+                            controllers.map(
+                              (name, controller) =>
+                                  MapEntry(name, controller.text.trim()),
+                            ),
+                          ),
+                        );
+                        final essayAnswerTexts = _essayAnswers.map(
+                          (questionIndex, controller) =>
+                              MapEntry(questionIndex, controller.text.trim()),
+                        );
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => QuizSubmissionPage(
+                              usernames: List<String>.from(
+                                widget.selectedUsernames,
+                              ),
+                              courseID: widget.selectedCourseDetails[0],
+                              classID: widget.selectedCourseDetails[1],
+                              activeID: widget.selectedActiveID,
+                              questions: _questions,
+                              originalData: _originalData,
+                              singleChoiceAnswers: Map<int, String>.from(
+                                _singleChoiceAnswers,
+                              ),
+                              multipleChoiceAnswers: _multipleChoiceAnswers.map(
+                                (questionIndex, selectedOptions) => MapEntry(
+                                  questionIndex,
+                                  Set<String>.from(selectedOptions),
+                                ),
+                              ),
+                              judgementAnswers: Map<int, String>.from(
+                                _judgementAnswers,
+                              ),
+                              blankAnswers: blankAnswerTexts,
+                              essayAnswers: essayAnswerTexts,
+                            ),
+                          ),
+                        );
                       }
                     : null,
                 child: const Text('提交'),
