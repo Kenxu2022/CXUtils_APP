@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:cxutils/network/api.dart';
+import 'package:cxutils/providers/credentials_provider.dart';
 import 'package:cxutils/providers/settings_provider.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -124,17 +126,13 @@ class _SettingsPageState extends State<SettingsPage> {
                 children: <Widget>[
                   TextFormField(
                     controller: courseIDController,
-                    decoration: const InputDecoration(
-                      labelText: 'CourseID',
-                    ),
+                    decoration: const InputDecoration(labelText: 'CourseID'),
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   ),
                   TextFormField(
                     controller: classIDController,
-                    decoration: const InputDecoration(
-                      labelText: 'ClassID',
-                    ),
+                    decoration: const InputDecoration(labelText: 'ClassID'),
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   ),
@@ -162,6 +160,94 @@ class _SettingsPageState extends State<SettingsPage> {
                   }
                 }
               },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _syncUsersFromServer() async {
+    final credentialsProvider = Provider.of<CredentialsProvider>(
+      context,
+      listen: false,
+    );
+    final result = await syncUsers();
+
+    if (!mounted) {
+      return;
+    }
+
+    if (result['detail'] is String) {
+      await showDialog<void>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('同步失败'),
+            content: Text(result['detail'] as String),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('确定'),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
+    final List<String> localUsers = credentialsProvider.credentials;
+    final List<String> serverUsers = [];
+    final dynamic data = result['data'];
+    if (data is List) {
+      for (final dynamic user in data) {
+        if (user is String) {
+          serverUsers.add(user);
+        }
+      }
+    }
+
+    final List<String> missingUsers = serverUsers
+        .where((String user) => !localUsers.contains(user))
+        .toList();
+
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('同步账号信息'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              const Text('是否添加以下账号：'),
+              const SizedBox(height: 8),
+              if (missingUsers.isEmpty)
+                const Text('暂无可添加账号')
+              else
+                ...missingUsers.map((String username) {
+                  return Text('• $username');
+                }),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: missingUsers.isEmpty
+                  ? null
+                  : () async {
+                      for (final String username in missingUsers) {
+                        await credentialsProvider.addUser(username);
+                      }
+                      if (context.mounted) {
+                        Navigator.of(context).pop();
+                      }
+                    },
+              child: const Text('确定'),
             ),
           ],
         );
@@ -197,6 +283,25 @@ class _SettingsPageState extends State<SettingsPage> {
                 onSelected: (value) async {
                   await settingsProvider.setThemeValue(value);
                 },
+              ),
+            ),
+            SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.only(left: 12.0),
+              child: Text(
+                "账号",
+                style: TextStyle(color: Theme.of(context).colorScheme.primary),
+              ),
+            ),
+            SizedBox(height: 8),
+            ListTile(
+              title: Text("同步账号信息", style: TextStyle(fontSize: 16)),
+              subtitle: Text("将服务端已存在的账号同步至本地"),
+              trailing: ElevatedButton(
+                onPressed: () async {
+                  await _syncUsersFromServer();
+                },
+                child: const Text('同步'),
               ),
             ),
             SizedBox(height: 8),

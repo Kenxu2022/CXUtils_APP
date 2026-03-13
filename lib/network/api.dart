@@ -81,6 +81,42 @@ Future<Map<String, dynamic>> deleteCredential(
   }
 }
 
+Future<Map<String, dynamic>> syncUsers(
+  /* return format:
+  if disabled, return 403 with body:
+  {
+    'detail': String,
+  }
+  else return list of users:
+  {
+    'success': bool,
+    'data': List<String> | String, // if success is true, data is List<String>, else data is String (error message)
+  }
+  */
+) async {
+  final url = '${settings.endpoint}/syncUsers';
+  final headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ${await getToken()}',
+  };
+
+  try {
+    final response = await http
+        .post(
+          Uri.parse(url),
+          headers: headers,
+        )
+        .timeout(const Duration(seconds: 5));
+    final Map<String, dynamic> responseBody = jsonDecode(response.body);
+    return responseBody;
+  } on TimeoutException {
+    return {
+      'success': false,
+      'data': '请求超时，请检查网络',
+    };
+  }
+}
+
 Future<Map<String, dynamic>> getCourse(
   /* return format:
   {
