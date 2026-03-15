@@ -198,6 +198,7 @@ class _SettingsPageState extends State<SettingsPage> {
     }
 
     final List<String> localUsers = credentialsProvider.credentials;
+    final List<String> localNicknames = credentialsProvider.nicknames;
     final List<String> serverUsers = [];
     final List<String> serverNicknames = [];
     final dynamic data = result['data'];
@@ -208,9 +209,12 @@ class _SettingsPageState extends State<SettingsPage> {
       }
     }
 
-    final List<String> missingUsers = serverUsers
+    final List<String> usersToAdd = serverUsers
         .where((String user) => !localUsers.contains(user))
         .toList();
+    final List<String> usersToRemove = localUsers
+      .where((String user) => !serverUsers.contains(user))
+      .toList();
 
     await showDialog<void>(
       context: context,
@@ -223,14 +227,26 @@ class _SettingsPageState extends State<SettingsPage> {
             children: <Widget>[
               const Text('是否添加以下账号：'),
               const SizedBox(height: 8),
-              if (missingUsers.isEmpty)
+              if (usersToAdd.isEmpty)
                 const Text('暂无可添加账号')
               else
-                ...missingUsers.map((String username) {
+                ...usersToAdd.map((String username) {
                   final nickname = serverNicknames[serverUsers.indexOf(username)];
-                  return nickname != ""
-                      ? Text('• $username ($nickname)')
-                      : Text('• $username');
+                  return nickname.isEmpty
+                      ? Text('• $username')
+                      : Text('• $username ($nickname)');
+                }),
+              const SizedBox(height: 12),
+              const Text('是否删除以下本地账号：'),
+              const SizedBox(height: 8),
+              if (usersToRemove.isEmpty)
+                const Text('暂无可删除账号')
+              else
+                ...usersToRemove.map((String username) {
+                  final nickname = localNicknames[localUsers.indexOf(username)];
+                  return nickname.isEmpty
+                      ? Text('• $username')
+                      : Text('• $username ($nickname)');
                 }),
             ],
           ),
@@ -240,12 +256,15 @@ class _SettingsPageState extends State<SettingsPage> {
               child: const Text('取消'),
             ),
             TextButton(
-              onPressed: missingUsers.isEmpty
+              onPressed: usersToAdd.isEmpty && usersToRemove.isEmpty
                   ? null
                   : () async {
-                      for (final String username in missingUsers) {
+                      for (final String username in usersToAdd) {
                         final nickname = serverNicknames[serverUsers.indexOf(username)];
                         await credentialsProvider.addUser(username, nickname);
+                      }
+                      for (final String username in usersToRemove) {
+                        await credentialsProvider.removeUser(username);
                       }
                       if (context.mounted) {
                         Navigator.of(context).pop();
