@@ -23,6 +23,9 @@ class CredentialsProvider extends ChangeNotifier {
     _credentials = credentials ?? [];
     final List<String>? nicknames = _prefs.getStringList('nicknames');
     _nicknames = nicknames ?? [];
+    if (_nicknames.length < _credentials.length) {
+      _nicknames.addAll(List.filled(_credentials.length - _nicknames.length, ''));
+    }
     _isInitialized = true;
     notifyListeners();
   }
@@ -34,17 +37,12 @@ class CredentialsProvider extends ChangeNotifier {
   List<String> get nicknames => _nicknames;
 
   Future<void> addUser(String user, String nickname) async {
-    final int existingIndex = _credentials.indexOf(user);
-    if (existingIndex != -1) {
-      if (existingIndex < _nicknames.length) {
-        _nicknames[existingIndex] = nickname;
-      } else {
-        _nicknames.insert(existingIndex, nickname);
-      }
+    final int index = _credentials.indexOf(user);
+    if (index != -1) {
+      _nicknames[index] = nickname;
     } else {
-      final int insertIndex = _credentials.length;
       _credentials.add(user);
-      _nicknames.insert(insertIndex, nickname);
+      _nicknames.add(nickname);
     }
     await _prefs.setStringList('credentials', _credentials);
     await _prefs.setStringList('nicknames', _nicknames);
