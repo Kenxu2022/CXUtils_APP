@@ -31,7 +31,7 @@ class _HomePageState extends State<HomePage> {
                   MaterialPageRoute(builder: (context) => SettingsPage()),
                 );
               },
-              icon: Icon(Icons.settings_rounded),
+              icon: const Icon(Icons.settings_rounded),
             ),
           ),
         ],
@@ -88,6 +88,10 @@ class _HomePageState extends State<HomePage> {
                           itemCount: credentialsProvider.credentials.length,
                           itemBuilder: (context, index) {
                             final username = credentialsProvider.credentials[index];
+                            final nickname =
+                                credentialsProvider.nicknames.length > index
+                                ? credentialsProvider.nicknames[index]
+                                : '';
                             return Card(
                               margin: const EdgeInsets.symmetric(
                                 horizontal: 12,
@@ -107,32 +111,62 @@ class _HomePageState extends State<HomePage> {
                                   },
                                 ),
                                 title: Text(username),
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.delete),
-                                  onPressed: () async {
-                                    final result = await deleteCredential(username);              
-                                    if (result['success'] == true) {
-                                      await credentialsProvider.removeUser(username);
-                                      setState(() {
-                                        _selectedUsername.remove(username);
-                                      });
-                                      if (mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('成功移除用户$username')),
+                                subtitle: nickname.isNotEmpty
+                                    ? Text(nickname)
+                                    : null,
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.edit_outlined),
+                                      onPressed: () {
+                                        _showEditNicknameDialog(
+                                          context,
+                                          username,
+                                          nickname,
                                         );
-                                      }
-                                    } else {
-                                      if (mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              '移除用户失败: ${result['detail'] ?? '未知错误'}',
-                                            ),
-                                          ),
+                                      },
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete),
+                                      onPressed: () async {
+                                        final result = await deleteCredential(
+                                          username,
                                         );
-                                      }
-                                    }
-                                  },
+                                        if (result['success'] == true) {
+                                          await credentialsProvider.removeUser(
+                                            username,
+                                          );
+                                          setState(() {
+                                            _selectedUsername.remove(username);
+                                          });
+                                          if (mounted) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  '成功移除用户$username',
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        } else {
+                                          if (mounted) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  '移除用户失败: ${result['detail'] ?? '未知错误'}',
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      },
+                                    ),
+                                  ],
                                 ),
                               ),
                             );
@@ -180,6 +214,7 @@ class _HomePageState extends State<HomePage> {
 
   void _showAddCredentialDialog(BuildContext context) {
     final usernameController = TextEditingController();
+    final nicknameController = TextEditingController();
     final passwordController = TextEditingController();
     final credentialsProvider = Provider.of<CredentialsProvider>(
       context,
@@ -191,6 +226,9 @@ class _HomePageState extends State<HomePage> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
+            final canSubmit =
+                usernameController.text.trim().isNotEmpty &&
+                passwordController.text.trim().isNotEmpty;
             return AlertDialog(
               title: const Text('输入学习通账号及密码'),
               content: Column(
@@ -198,14 +236,24 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   TextField(
                     controller: usernameController,
+                    onChanged: (_) {
+                      setState(() {});
+                    },
                     decoration: InputDecoration(
                       labelText: '用户名',
                       errorText: _addCredentialError,
                     ),
                   ),
                   TextField(
+                    controller: nicknameController,
+                    decoration: InputDecoration(labelText: '昵称（可选）'),
+                  ),
+                  TextField(
                     controller: passwordController,
                     obscureText: true,
+                    onChanged: (_) {
+                      setState(() {});
+                    },
                     decoration: InputDecoration(
                       labelText: '密码',
                       errorText: _addCredentialError,
@@ -219,25 +267,109 @@ class _HomePageState extends State<HomePage> {
                   child: const Text('取消'),
                 ),
                 TextButton(
-                  onPressed: () async {
-                    final username = usernameController.text;
-                    final password = passwordController.text;
-                    final result = await addCredential(username, password);
+                  onPressed: canSubmit
+                      ? () async {
+                          final username = usernameController.text;
+                          final password = passwordController.text;
+                          final nickname = nicknameController.text.trim();
+                          final result = await addCredential(
+                            username,
+                            password,
+                            nickname,
+                          );
 
-                    if (result['success'] == true) {
-                      await credentialsProvider.addUser(username);
-                      if (mounted) {
-                        Navigator.of(context).pop();
-                      }
-                      setState(() {
-                        _addCredentialError = null;
-                      });
-                    } else {
-                      setState(() {
-                        _addCredentialError = result['detail'] ?? '未知错误';
-                      });
-                    }
-                  },
+                          if (result['success'] == true) {
+                            await credentialsProvider.addUser(
+                              username,
+                              nickname,
+                            );
+                            if (mounted) {
+                              Navigator.of(context).pop();
+                            }
+                            setState(() {
+                              _addCredentialError = null;
+                            });
+                          } else {
+                            setState(() {
+                              _addCredentialError = result['detail'] ?? '未知错误';
+                            });
+                          }
+                        }
+                      : null,
+                  child: const Text('确定'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showEditNicknameDialog(
+    BuildContext context,
+    String username,
+    String initialNickname,
+  ) {
+    final nicknameController = TextEditingController(text: initialNickname);
+    final credentialsProvider = Provider.of<CredentialsProvider>(
+      context,
+      listen: false,
+    );
+    String? updateNicknameError;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final canSubmit = (nicknameController.text).trim() != initialNickname;
+            return AlertDialog(
+              title: const Text('添加或修改昵称'),
+              content: TextField(
+                controller: nicknameController,
+                onChanged: (_) {
+                  setState(() {
+                    updateNicknameError = null;
+                  });
+                },
+                decoration: InputDecoration(
+                  labelText: '昵称',
+                  errorText: updateNicknameError,
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('取消'),
+                ),
+                TextButton(
+                  onPressed: canSubmit
+                      ? () async {
+                          final nickname = nicknameController.text.trim();
+                          final result = await updateNickname(
+                            username,
+                            nickname,
+                          );
+
+                          if (result['success'] == true) {
+                            await credentialsProvider.addUser(
+                              username,
+                              nickname,
+                            );
+                            if (mounted) {
+                              Navigator.of(context).pop();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('成功更新用户$username的昵称')),
+                              );
+                            }
+                          } else {
+                            setState(() {
+                              updateNicknameError = result['detail'] ?? '未知错误';
+                            });
+                          }
+                        }
+                      : null,
                   child: const Text('确定'),
                 ),
               ],

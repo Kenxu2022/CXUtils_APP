@@ -5,6 +5,7 @@ class CredentialsProvider extends ChangeNotifier {
   static CredentialsProvider? _instance;
   late SharedPreferences _prefs;
   List<String> _credentials = [];
+  List<String> _nicknames = [];
   bool _isInitialized = false;
 
   CredentialsProvider._() {
@@ -20,6 +21,8 @@ class CredentialsProvider extends ChangeNotifier {
     _prefs = await SharedPreferences.getInstance();
     final List<String>? credentials = _prefs.getStringList('credentials');
     _credentials = credentials ?? [];
+    final List<String>? nicknames = _prefs.getStringList('nicknames');
+    _nicknames = nicknames ?? [];
     _isInitialized = true;
     notifyListeners();
   }
@@ -28,15 +31,32 @@ class CredentialsProvider extends ChangeNotifier {
 
   List<String> get credentials => _credentials;
 
-  Future<void> addUser(String user) async {
-    _credentials.add(user);
+  List<String> get nicknames => _nicknames;
+
+  Future<void> addUser(String user, String nickname) async {
+    final int existingIndex = _credentials.indexOf(user);
+    if (existingIndex != -1) {
+      if (existingIndex < _nicknames.length) {
+        _nicknames[existingIndex] = nickname;
+      } else {
+        _nicknames.insert(existingIndex, nickname);
+      }
+    } else {
+      final int insertIndex = _credentials.length;
+      _credentials.add(user);
+      _nicknames.insert(insertIndex, nickname);
+    }
     await _prefs.setStringList('credentials', _credentials);
+    await _prefs.setStringList('nicknames', _nicknames);
     notifyListeners();
   }
 
   Future<void> removeUser(String user) async {
-    _credentials.remove(user);
+    final int index = _credentials.indexOf(user);
+    _credentials.removeAt(index);
+    _nicknames.removeAt(index);
     await _prefs.setStringList('credentials', _credentials);
+    await _prefs.setStringList('nicknames', _nicknames);
     notifyListeners();
   }
 }

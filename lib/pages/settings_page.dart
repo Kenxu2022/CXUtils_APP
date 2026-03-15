@@ -199,12 +199,12 @@ class _SettingsPageState extends State<SettingsPage> {
 
     final List<String> localUsers = credentialsProvider.credentials;
     final List<String> serverUsers = [];
+    final List<String> serverNicknames = [];
     final dynamic data = result['data'];
     if (data is List) {
       for (final dynamic user in data) {
-        if (user is String) {
-          serverUsers.add(user);
-        }
+        serverUsers.add(user[0]);
+        serverNicknames.add(user[1]);
       }
     }
 
@@ -227,7 +227,10 @@ class _SettingsPageState extends State<SettingsPage> {
                 const Text('暂无可添加账号')
               else
                 ...missingUsers.map((String username) {
-                  return Text('• $username');
+                  final nickname = serverNicknames[serverUsers.indexOf(username)];
+                  return nickname != ""
+                      ? Text('• $username ($nickname)')
+                      : Text('• $username');
                 }),
             ],
           ),
@@ -241,7 +244,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   ? null
                   : () async {
                       for (final String username in missingUsers) {
-                        await credentialsProvider.addUser(username);
+                        final nickname = serverNicknames[serverUsers.indexOf(username)];
+                        await credentialsProvider.addUser(username, nickname);
                       }
                       if (context.mounted) {
                         Navigator.of(context).pop();

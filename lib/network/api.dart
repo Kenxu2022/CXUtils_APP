@@ -16,6 +16,7 @@ Future<Map<String, dynamic>> addCredential(
   */
   String username,
   String password,
+  String nickname,
 ) async {
   final url = '${settings.endpoint}/addCredential';
   final headers = {
@@ -25,6 +26,7 @@ Future<Map<String, dynamic>> addCredential(
   final body = jsonEncode({
     'username': username,
     'password': password,
+    'nickname': nickname,
   });
 
   try {
@@ -90,7 +92,7 @@ Future<Map<String, dynamic>> syncUsers(
   else return list of users:
   {
     'success': bool,
-    'data': List<String> | String, // if success is true, data is List<String>, else data is String (error message)
+    'data': List<List<String>> | String, // if success is true, data is List<List<String>> (username, nickname), else data is String (error message)
   }
   */
 ) async {
@@ -113,6 +115,44 @@ Future<Map<String, dynamic>> syncUsers(
     return {
       'success': false,
       'data': '请求超时，请检查网络',
+    };
+  }
+}
+
+Future<Map<String, dynamic>> updateNickname(
+  /* return format:
+  {
+    'success': bool,
+    'detail': String?,
+  }
+  */
+  String username,
+  String nickname,
+) async {
+  final url = '${settings.endpoint}/updateNickname';
+  final headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ${await getToken()}',
+  };
+  final body = jsonEncode({
+    'username': username,
+    'nickname': nickname,
+  });
+
+  try {
+    final response = await http
+        .post(
+          Uri.parse(url),
+          headers: headers,
+          body: body,
+        )
+        .timeout(const Duration(seconds: 5));
+    final Map<String, dynamic> responseBody = jsonDecode(response.body);
+    return responseBody;
+  } on TimeoutException {
+    return {
+      'success': false,
+      'detail': '请求超时，请检查网络',
     };
   }
 }
