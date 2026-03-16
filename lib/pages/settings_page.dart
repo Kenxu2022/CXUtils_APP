@@ -215,6 +215,14 @@ class _SettingsPageState extends State<SettingsPage> {
     final List<String> usersToRemove = localUsers
       .where((String user) => !serverUsers.contains(user))
       .toList();
+    final List<String> usersToUpdateNickname = localUsers
+      .where(
+        (String user) =>
+          serverUsers.contains(user) &&
+          localNicknames[localUsers.indexOf(user)] !=
+            serverNicknames[serverUsers.indexOf(user)],
+      )
+      .toList();
 
     await showDialog<void>(
       context: context,
@@ -248,6 +256,17 @@ class _SettingsPageState extends State<SettingsPage> {
                       ? Text('• $username')
                       : Text('• $username ($nickname)');
                 }),
+              const SizedBox(height: 12),
+              const Text('是否同步以下账号昵称：'),
+              const SizedBox(height: 8),
+              if (usersToUpdateNickname.isEmpty)
+                const Text('暂无可同步昵称')
+              else
+                ...usersToUpdateNickname.map((String username) {
+                  final localNickname = localNicknames[localUsers.indexOf(username)];
+                  final serverNickname = serverNicknames[serverUsers.indexOf(username)];
+                  return Text('• $username: $localNickname -> $serverNickname');
+                }),
             ],
           ),
           actions: <Widget>[
@@ -256,7 +275,9 @@ class _SettingsPageState extends State<SettingsPage> {
               child: const Text('取消'),
             ),
             TextButton(
-              onPressed: usersToAdd.isEmpty && usersToRemove.isEmpty
+              onPressed: usersToAdd.isEmpty &&
+                      usersToRemove.isEmpty &&
+                      usersToUpdateNickname.isEmpty
                   ? null
                   : () async {
                       for (final String username in usersToAdd) {
@@ -265,6 +286,10 @@ class _SettingsPageState extends State<SettingsPage> {
                       }
                       for (final String username in usersToRemove) {
                         await credentialsProvider.removeUser(username);
+                      }
+                      for (final String username in usersToUpdateNickname) {
+                        final nickname = serverNicknames[serverUsers.indexOf(username)];
+                        await credentialsProvider.addUser(username, nickname);
                       }
                       if (context.mounted) {
                         Navigator.of(context).pop();
