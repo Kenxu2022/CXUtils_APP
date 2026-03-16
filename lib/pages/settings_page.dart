@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:cxutils/network/api.dart';
+import 'package:cxutils/pages/settings_page_dialog.dart';
 import 'package:cxutils/providers/credentials_provider.dart';
 import 'package:cxutils/providers/settings_provider.dart';
+import 'package:cxutils/utils/sync_logic.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -35,272 +36,6 @@ class _SettingsPageState extends State<SettingsPage> {
         versionText = "Version: ${info.version} (${info.buildNumber})";
       });
     }
-  }
-
-  Future<void> _showLocationDialog() async {
-    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
-    final latitudeController =
-        TextEditingController(text: settingsProvider.latitude);
-    final longitudeController =
-        TextEditingController(text: settingsProvider.longitude);
-    final locationTextController =
-        TextEditingController(text: settingsProvider.locationText);
-
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('修改位置信息'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                TextField(
-                  controller: latitudeController,
-                  decoration: const InputDecoration(
-                    labelText: '纬度',
-                    hintText: '例如: 39.90923',
-                  ),
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                ),
-                TextField(
-                  controller: longitudeController,
-                  decoration: const InputDecoration(
-                    labelText: '经度',
-                    hintText: '例如: 116.397428',
-                  ),
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                ),
-                TextField(
-                  controller: locationTextController,
-                  decoration: const InputDecoration(
-                    labelText: '位置名称',
-                    hintText: '例如: 天安门广场',
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('取消'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('确定'),
-              onPressed: () async {
-                await settingsProvider.setLatitude(latitudeController.text);
-                await settingsProvider.setLongitude(longitudeController.text);
-                await settingsProvider
-                    .setLocationText(locationTextController.text);
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _showOverrideDialog() async {
-    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
-    final courseIDController =
-        TextEditingController(text: settingsProvider.overrideCourseID);
-    final classIDController =
-        TextEditingController(text: settingsProvider.overrideClassID);
-    final formKey = GlobalKey<FormState>();
-
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          content: SingleChildScrollView(
-            child: Form(
-              key: formKey,
-              child: ListBody(
-                children: <Widget>[
-                  TextFormField(
-                    controller: courseIDController,
-                    decoration: const InputDecoration(labelText: 'CourseID'),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  ),
-                  TextFormField(
-                    controller: classIDController,
-                    decoration: const InputDecoration(labelText: 'ClassID'),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('取消'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('确定'),
-              onPressed: () async {
-                if (formKey.currentState!.validate()) {
-                  await settingsProvider
-                      .setOverrideCourseID(courseIDController.text);
-                  await settingsProvider
-                      .setOverrideClassID(classIDController.text);
-                  if (context.mounted) {
-                    Navigator.of(context).pop();
-                  }
-                }
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _syncUsersFromServer() async {
-    final credentialsProvider = Provider.of<CredentialsProvider>(
-      context,
-      listen: false,
-    );
-    final result = await syncUsers();
-
-    if (!mounted) {
-      return;
-    }
-
-    if (result['detail'] is String) {
-      await showDialog<void>(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('同步失败'),
-            content: Text(result['detail'] as String),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('确定'),
-              ),
-            ],
-          );
-        },
-      );
-      return;
-    }
-
-    final List<String> localUsers = credentialsProvider.credentials;
-    final List<String> localNicknames = credentialsProvider.nicknames;
-    final List<String> serverUsers = [];
-    final List<String> serverNicknames = [];
-    final dynamic data = result['data'];
-    if (data is List) {
-      for (final dynamic user in data) {
-        serverUsers.add(user[0]);
-        serverNicknames.add(user[1]);
-      }
-    }
-
-    final List<String> usersToAdd = serverUsers
-        .where((String user) => !localUsers.contains(user))
-        .toList();
-    final List<String> usersToRemove = localUsers
-      .where((String user) => !serverUsers.contains(user))
-      .toList();
-    final List<String> usersToUpdateNickname = localUsers
-      .where(
-        (String user) =>
-          serverUsers.contains(user) &&
-          localNicknames[localUsers.indexOf(user)] !=
-            serverNicknames[serverUsers.indexOf(user)],
-      )
-      .toList();
-
-    await showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('同步账号信息'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              const Text('是否添加以下账号：'),
-              const SizedBox(height: 8),
-              if (usersToAdd.isEmpty)
-                const Text('暂无可添加账号')
-              else
-                ...usersToAdd.map((String username) {
-                  final nickname = serverNicknames[serverUsers.indexOf(username)];
-                  return nickname.isEmpty
-                      ? Text('• $username')
-                      : Text('• $username ($nickname)');
-                }),
-              const SizedBox(height: 12),
-              const Text('是否删除以下本地账号：'),
-              const SizedBox(height: 8),
-              if (usersToRemove.isEmpty)
-                const Text('暂无可删除账号')
-              else
-                ...usersToRemove.map((String username) {
-                  final nickname = localNicknames[localUsers.indexOf(username)];
-                  return nickname.isEmpty
-                      ? Text('• $username')
-                      : Text('• $username ($nickname)');
-                }),
-              const SizedBox(height: 12),
-              const Text('是否同步以下账号昵称：'),
-              const SizedBox(height: 8),
-              if (usersToUpdateNickname.isEmpty)
-                const Text('暂无可同步昵称')
-              else
-                ...usersToUpdateNickname.map((String username) {
-                  final localNickname = localNicknames[localUsers.indexOf(username)];
-                  final serverNickname = serverNicknames[serverUsers.indexOf(username)];
-                  return Text('• $username: $localNickname -> $serverNickname');
-                }),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('取消'),
-            ),
-            TextButton(
-              onPressed: usersToAdd.isEmpty &&
-                      usersToRemove.isEmpty &&
-                      usersToUpdateNickname.isEmpty
-                  ? null
-                  : () async {
-                      for (final String username in usersToAdd) {
-                        final nickname = serverNicknames[serverUsers.indexOf(username)];
-                        await credentialsProvider.addUser(username, nickname);
-                      }
-                      for (final String username in usersToRemove) {
-                        await credentialsProvider.removeUser(username);
-                      }
-                      for (final String username in usersToUpdateNickname) {
-                        final nickname = serverNicknames[serverUsers.indexOf(username)];
-                        await credentialsProvider.addUser(username, nickname);
-                      }
-                      if (context.mounted) {
-                        Navigator.of(context).pop();
-                      }
-                    },
-              child: const Text('确定'),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   @override
@@ -347,7 +82,16 @@ class _SettingsPageState extends State<SettingsPage> {
               subtitle: Text("将服务端已存在的账号同步至本地"),
               trailing: ElevatedButton(
                 onPressed: () async {
-                  await _syncUsersFromServer();
+                  final credentialsProvider = Provider.of<CredentialsProvider>(
+                    context,
+                    listen: false,
+                  );
+                  await syncUsersFromServer(
+                    context: context,
+                    credentialsProvider: credentialsProvider,
+                    showErrorDialog: showSyncUsersErrorDialog,
+                    showConfirmDialog: showSyncUsersConfirmDialog,
+                  );
                 },
                 child: const Text('同步'),
               ),
@@ -364,8 +108,8 @@ class _SettingsPageState extends State<SettingsPage> {
             ListTile(
               title: Text("修改位置信息", style: TextStyle(fontSize: 16)),
               trailing: ElevatedButton(
-                onPressed: () {
-                  _showLocationDialog();
+                onPressed: () async {
+                  await showLocationDialog(context, settingsProvider);
                 },
                 child: const Text('修改'),
               ),
@@ -383,8 +127,8 @@ class _SettingsPageState extends State<SettingsPage> {
               title: Text("强制指定课程信息", style: TextStyle(fontSize: 16)),
               subtitle: Text("仅供调试使用，正常使用请勿设置"),
               trailing: ElevatedButton(
-                onPressed: () {
-                  _showOverrideDialog();
+                onPressed: () async {
+                  await showOverrideDialog(context, settingsProvider);
                 },
                 child: const Text('设置'),
               ),
@@ -418,10 +162,7 @@ class _SettingsPageState extends State<SettingsPage> {
             SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.only(left: 16.0, right: 16.0),
-              child: Text(
-                "CXUtils",
-                style: TextStyle(fontSize: 16),
-              ),
+              child: Text("CXUtils", style: TextStyle(fontSize: 16)),
             ),
             SizedBox(height: 4),
             Padding(
