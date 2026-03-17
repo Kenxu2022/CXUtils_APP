@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cxutils/providers/settings_provider.dart';
 import 'package:cxutils/network/auth.dart';
+import 'package:cxutils/pages/initialization/config_import_page.dart';
 import 'package:cxutils/utils/token_management.dart';
 
 class BackendSettingsPage extends StatefulWidget {
@@ -32,6 +33,8 @@ class _BackendSettingsPageState extends State<BackendSettingsPage> {
   }
 
   Future<void> _validateAndSave() async {
+    final settings = Provider.of<SettingsProvider>(context, listen: false);
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -43,12 +46,13 @@ class _BackendSettingsPageState extends State<BackendSettingsPage> {
       _passwordController.text,
     );
 
+    if (!mounted) return;
+
     setState(() {
       _isLoading = false;
     });
 
     if (result['success'] == true) {
-      final settings = Provider.of<SettingsProvider>(context, listen: false);
       await settings.setEndpointValue(_endpointController.text);
       await settings.setUsername(_usernameController.text);
       await settings.setPassword(_passwordController.text);
@@ -123,6 +127,17 @@ class _BackendSettingsPageState extends State<BackendSettingsPage> {
                   onPressed: widget.onSuccess,
                   child: const Text('下一步'),
                 ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const ConfigImportPage(),
+                      ),
+                    );
+                  },
+                  child: const Text('从二维码导入配置'),
+                )
             ],
           ),
         ),

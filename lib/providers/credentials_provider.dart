@@ -57,4 +57,17 @@ class CredentialsProvider extends ChangeNotifier {
     await _prefs.setStringList('nicknames', _nicknames);
     notifyListeners();
   }
+
+  Future<void> setUsers(List<String> credentials, List<String> nicknames) async {
+    _credentials = List<String>.from(credentials);
+    _nicknames = List<String>.from(nicknames);
+    if (_nicknames.length < _credentials.length) {
+      _nicknames.addAll(List.filled(_credentials.length - _nicknames.length, ''));
+    } else if (_nicknames.length > _credentials.length) {
+      _nicknames = _nicknames.sublist(0, _credentials.length);
+    }
+    await _prefs.setStringList('credentials', _credentials);
+    await _prefs.setStringList('nicknames', _nicknames);
+    notifyListeners();
+  }
 }
