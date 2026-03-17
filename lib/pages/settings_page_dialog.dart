@@ -273,18 +273,14 @@ Future<void> showQRCodeDialog(
           widthFactor: 1,
           heightFactor: 1,
           child: SizedBox(
-            width: 200,
-            height: 200,
+            width: 250,
+            height: 250,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: ColoredBox(
-                color: Colors.white,
-                child: QrImageView(
-                  data: qrData,
-                  version: QrVersions.auto,
-                  size: 200.0,
-                  backgroundColor: Colors.white,
-                ),
+              child: QrImageView(
+                data: qrData,
+                version: QrVersions.auto,
+                backgroundColor: Colors.white,
               ),
             ),
           ),
