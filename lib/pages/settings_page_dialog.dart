@@ -1,5 +1,9 @@
+import 'dart:convert';
+import 'package:qr_flutter/qr_flutter.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cxutils/providers/credentials_provider.dart';
 import 'package:cxutils/providers/settings_provider.dart';
 
 Future<void> showLocationDialog(
@@ -236,6 +240,58 @@ Future<bool?> showSyncUsersConfirmDialog(
                     usersToUpdateNickname.isEmpty
                 ? null
                 : () => Navigator.of(context).pop(true),
+            child: const Text('确定'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+Future<void> showQRCodeDialog(
+  BuildContext context,
+  SettingsProvider settingsProvider,
+  CredentialsProvider credentialsProvider,
+) async {
+  final String qrData = jsonEncode(<String, dynamic>{
+    'endpoint': settingsProvider.endpoint,
+    'username': settingsProvider.username,
+    'password': settingsProvider.password,
+    'latitude': settingsProvider.latitude,
+    'longitude': settingsProvider.longitude,
+    'locationText': settingsProvider.locationText,
+    'credentials': credentialsProvider.credentials,
+    'nicknames': credentialsProvider.nicknames,
+  });
+
+  return showDialog<void>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('配置二维码'),
+        content: Center(
+          widthFactor: 1,
+          heightFactor: 1,
+          child: SizedBox(
+            width: 200,
+            height: 200,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: ColoredBox(
+                color: Colors.white,
+                child: QrImageView(
+                  data: qrData,
+                  version: QrVersions.auto,
+                  size: 200.0,
+                  backgroundColor: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
             child: const Text('确定'),
           ),
         ],

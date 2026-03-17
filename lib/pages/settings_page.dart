@@ -41,6 +41,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final settingsProvider = Provider.of<SettingsProvider>(context);
+    final credentialsProvider = Provider.of<CredentialsProvider>(context, listen: false);
     return Scaffold(
       appBar: AppBar(
         // toolbarHeight: 48,
@@ -82,10 +83,6 @@ class _SettingsPageState extends State<SettingsPage> {
               subtitle: Text("将服务端已存在的账号同步至本地"),
               trailing: ElevatedButton(
                 onPressed: () async {
-                  final credentialsProvider = Provider.of<CredentialsProvider>(
-                    context,
-                    listen: false,
-                  );
                   await syncUsersFromServer(
                     context: context,
                     credentialsProvider: credentialsProvider,
@@ -105,6 +102,21 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
             SizedBox(height: 8),
+            ListTile(
+              title: Text("生成配置二维码", style: TextStyle(fontSize: 16)),
+              subtitle: Text("包含后端账号密码和签到定位等信息，可在新设备上扫码导入"),
+              trailing: ElevatedButton(
+                onPressed: () async {
+                  await showQRCodeDialog(
+                    context,
+                    settingsProvider,
+                    credentialsProvider,
+                  );
+                },
+                child: const Text('生成'),
+              ),
+            ),
+            SizedBox(height: 4),
             ListTile(
               title: Text("修改位置信息", style: TextStyle(fontSize: 16)),
               trailing: ElevatedButton(
