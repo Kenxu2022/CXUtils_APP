@@ -101,20 +101,26 @@ class _ActivitySelectionPageState extends State<ActivitySelectionPage> {
                       itemBuilder: (context, index) {
                         final activity = _activities[index];
                         final activeType = activity['activeType'] as int;
-                        return Container(
+                        return Card(
                           margin: const EdgeInsets.symmetric(
                             vertical: 4.0,
                             horizontal: 8.0,
                           ),
-                          clipBehavior: Clip.antiAlias,
-                          decoration: BoxDecoration(
-                            color: _activityBackgroundColor(
-                              activeType,
-                              colorScheme,
-                            ),
+                          color: _activityBackgroundColor(
+                            activeType,
+                            colorScheme,
+                          ),
+                          shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
+                          clipBehavior: Clip.antiAlias,
                           child: ListTile(
+                            onTap: () {
+                              setState(() {
+                                _selectedActivityValue =
+                                    activity['_selectionValue'];
+                              });
+                            },
                             leading: Radio<List<dynamic>>(
                               value: activity['_selectionValue'],
                               groupValue: _selectedActivityValue,

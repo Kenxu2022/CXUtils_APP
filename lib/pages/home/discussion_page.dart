@@ -242,7 +242,7 @@ class _DiscussionPageState extends State<DiscussionPage> {
                       child: Text(
                         '使用他人回复',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 18,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -287,6 +287,10 @@ class _DiscussionPageState extends State<DiscussionPage> {
                               vertical: 6,
                             ),
                             color: Theme.of(context).colorScheme.onSecondary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            clipBehavior: Clip.antiAlias,
                             child: ListTile(
                               onTap: toggleSelect,
                               leading: Radio<String>(
