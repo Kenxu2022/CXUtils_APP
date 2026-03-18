@@ -233,7 +233,7 @@ Future<Map<String, dynamic>> getActivity(
     'username': username,
     'courseID': courseID,
     'classID': classID,
-    'activityType': [2, 42] // currently supported activity type 
+    'activityType': [2, 42, 5] // currently supported activity type 
   });
 
   try {
@@ -588,6 +588,143 @@ Future<Map<String, dynamic>> submitQuizProblem(
     'classID': classID,
     'activeID': activeID,
     'data': data,
+  });
+
+  try {
+    final response = await http
+        .post(
+          Uri.parse(url),
+          headers: headers,
+          body: body,
+        )
+        .timeout(const Duration(seconds: 5));
+    final Map<String, dynamic> responseBody = jsonDecode(response.body);
+    return responseBody;
+  } on TimeoutException {
+    return {
+      'success': false,
+      'detail': '请求超时，请检查网络',
+    };
+  }
+}
+
+Future<Map<String, dynamic>> getDiscussion(
+  /* return format:
+  {
+    'success': bool,
+    'data': Map<String, dynamic> | String, // if success is true, data is List<Map<String, dynamic>>, else data is String (error message)
+      format: {
+              'content': String,
+              'publicURL': String,
+              'uuid': String,
+              'bbsid': String
+            }
+  */
+  String username,
+  String activeID, 
+) async {
+  final url = '${settings.endpoint}/getDiscussion';
+  final headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ${await getToken()}',
+  };
+  final body = jsonEncode({
+    'username': username,
+    'activeID': activeID,
+  });
+
+  try {
+    final response = await http
+        .post(
+          Uri.parse(url),
+          headers: headers,
+          body: body,
+        )
+        .timeout(const Duration(seconds: 5));
+    final Map<String, dynamic> responseBody = jsonDecode(response.body);
+    return responseBody;
+  } on TimeoutException {
+    return {
+      'success': false,
+      'data': '请求超时，请检查网络',
+    };
+  }
+}
+
+Future<Map<String, dynamic>> getReply(
+  /* return format:
+  {
+    'success': bool,
+    'data': List<Map<String, dynamic>> | String, // if success is true, data is List<Map<String, dynamic>>, else data is String (error message)
+      format: [ // list of replies
+            {
+              'floor': String, // name of this floor
+              'name': String, // replyer's nickname
+              'content': String,
+            },
+            ...
+          ]
+  }
+  */
+  String username,
+  String uuid,
+  String bbsid,
+) async {
+  final url = '${settings.endpoint}/getReply';
+  final headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ${await getToken()}',
+  };
+  final body = jsonEncode({
+    'username': username,
+    'uuid': uuid,
+    'bbsid': bbsid,
+  });
+
+  try {
+    final response = await http
+        .post(
+          Uri.parse(url),
+          headers: headers,
+          body: body,
+        )
+        .timeout(const Duration(seconds: 5));
+    final Map<String, dynamic> responseBody = jsonDecode(response.body);
+    return responseBody;
+  } on TimeoutException {
+    return {
+      'success': false,
+      'data': '请求超时，请检查网络',
+    };
+  }
+}
+
+Future<Map<String, dynamic>> submitReply(
+  /* return format:
+  {
+    'success': bool,
+    'detail': null | String, // if success is true, data is null, else data is String (error message)
+  }
+  */
+  String username,
+  String courseID,
+  String classID,
+  String uuid,
+  String bbsid,
+  String content,
+) async {
+  final url = '${settings.endpoint}/submitReply';
+  final headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ${await getToken()}',
+  };
+  final body = jsonEncode({
+    'username': username,
+    'courseID': courseID,
+    'classID': classID,
+    'uuid': uuid,
+    'bbsid': bbsid,
+    'content': content,
   });
 
   try {
