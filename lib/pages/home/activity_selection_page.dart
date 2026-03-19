@@ -3,6 +3,7 @@ import 'package:cxutils/network/api.dart' as api;
 import 'package:cxutils/pages/home/signin_page.dart';
 import 'package:cxutils/pages/home/quiz_page.dart';
 import 'package:cxutils/pages/home/discussion_page.dart';
+import 'package:cxutils/pages/home/buzzin_page.dart';
 
 class ActivitySelectionPage extends StatefulWidget {
   final List<String> selectedUsernames;
@@ -76,6 +77,9 @@ class _ActivitySelectionPageState extends State<ActivitySelectionPage> {
     }
     if (activeType == 5) {
       return Colors.green.withValues(alpha: 0.15);
+    }
+    if (activeType == 4) {
+      return Colors.orange.withValues(alpha: 0.15);
     }
     return colorScheme.surface;
   }
@@ -187,6 +191,21 @@ class _ActivitySelectionPageState extends State<ActivitySelectionPage> {
                               context,
                               MaterialPageRoute(
                                 builder: (_) => DiscussionPage(
+                                  selectedUsernames: widget.selectedUsernames,
+                                  selectedCourseDetails:
+                                      widget.selectedCourseDetails,
+                                  selectedActiveID: selectedActiveID,
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+
+                          if (activeType == 4) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => BuzzInPage(
                                   selectedUsernames: widget.selectedUsernames,
                                   selectedCourseDetails:
                                       widget.selectedCourseDetails,
