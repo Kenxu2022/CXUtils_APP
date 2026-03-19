@@ -233,7 +233,7 @@ Future<Map<String, dynamic>> getActivity(
     'username': username,
     'courseID': courseID,
     'classID': classID,
-    'activityType': [2, 42, 5] // currently supported activity type 
+    'activityType': [2, 42, 5, 4] // currently supported activity type 
   });
 
   try {
@@ -741,6 +741,60 @@ Future<Map<String, dynamic>> submitReply(
     return {
       'success': false,
       'detail': '请求超时，请检查网络',
+    };
+  }
+}
+
+Future<Map<String, dynamic>> getBuzzIn(
+  /* return format:
+  {
+    'success': bool,
+    'data': Map<String, dynamic> | String, // if success is true, data is List<Map<String, dynamic>>, else data is String (error message)
+      format: {
+              'attendList': [ // in order
+                {
+                  'name': String,
+                  'answerTime': String,
+                },
+                ...
+              ]
+              'startTime': String,
+              'endTime': String,
+              'hasEnded': bool,
+              'allowAnswerStuNum': int, // number of students allowed to buzz in, 0 means no limit
+            }
+  */
+  String username,
+  String courseID,
+  String classID,
+  String activeID, 
+) async {
+  final url = '${settings.endpoint}/getBuzzIn';
+  final headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ${await getToken()}',
+  };
+  final body = jsonEncode({
+    'username': username,
+    'courseID': courseID,
+    'classID': classID,
+    'activeID': activeID,
+  });
+
+  try {
+    final response = await http
+        .post(
+          Uri.parse(url),
+          headers: headers,
+          body: body,
+        )
+        .timeout(const Duration(seconds: 5));
+    final Map<String, dynamic> responseBody = jsonDecode(response.body);
+    return responseBody;
+  } on TimeoutException {
+    return {
+      'success': false,
+      'data': '请求超时，请检查网络',
     };
   }
 }
