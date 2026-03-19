@@ -24,6 +24,7 @@ class BuzzInPage extends StatefulWidget {
 class _BuzzInPageState extends State<BuzzInPage> {
 	bool _isLoading = true;
 	bool _isRefreshing = false;
+	bool _isSubmittingBuzzIn = false;
 	String? _error;
 	String _startTime = '';
 	String _endTime = '';
@@ -114,6 +115,89 @@ class _BuzzInPageState extends State<BuzzInPage> {
 		Navigator.of(context).pushAndRemoveUntil(
 			MaterialPageRoute(builder: (_) => const HomePage()),
 			(route) => false,
+		);
+	}
+
+	Future<void> _submitBuzzIn() async {
+		if (_isSubmittingBuzzIn) {
+			return;
+		}
+		setState(() {
+			_isSubmittingBuzzIn = true;
+		});
+
+		var message = '抢答成功';
+		try {
+			final responses = await Future.wait(
+				widget.selectedUsernames.map((username) async {
+					try {
+						final response = await api.submitBuzzIn(
+							username,
+							widget.selectedCourseDetails[0],
+							widget.selectedCourseDetails[1],
+							widget.selectedActiveID,
+						);
+						return <String, dynamic>{
+							'username': username,
+							'success': response['success'] == true,
+							'detail': response['detail'],
+						};
+					} catch (e) {
+						return <String, dynamic>{
+							'username': username,
+							'success': false,
+							'detail': '抢答失败: $e',
+						};
+					}
+				}),
+			);
+
+			final failures = <String>[];
+			var successCount = 0;
+			for (final item in responses) {
+				if (item['success'] == true) {
+					successCount++;
+				} else {
+					final username = (item['username'] ?? '').toString();
+					final detail = (item['detail'] ?? '抢答失败').toString();
+					failures.add('$username: $detail');
+				}
+			}
+
+			if (failures.isEmpty) {
+				if (widget.selectedUsernames.length > 1) {
+					message = '抢答成功（$successCount/${widget.selectedUsernames.length}）';
+				}
+				await _fetchBuzzIn();
+			} else {
+				message = '部分或全部抢答失败\n成功: $successCount/${widget.selectedUsernames.length}\n${failures.join('\n')}';
+			}
+		} catch (e) {
+			message = '抢答失败: $e';
+		} finally {
+			if (mounted) {
+				setState(() {
+					_isSubmittingBuzzIn = false;
+				});
+			}
+		}
+
+		if (!mounted) {
+			return;
+		}
+
+		await showDialog<void>(
+			context: context,
+			builder: (context) => AlertDialog(
+				title: const Text('提示'),
+				content: Text(message),
+				actions: [
+					TextButton(
+						onPressed: () => Navigator.of(context).pop(),
+						child: const Text('确定'),
+					),
+				],
+			),
 		);
 	}
 
@@ -220,8 +304,23 @@ class _BuzzInPageState extends State<BuzzInPage> {
 						),
 						Padding(
 							padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-							child: Center(
-								child: ElevatedButton(onPressed: _goHome, child: const Text('返回主页')),
+							child: Row(
+								mainAxisAlignment: MainAxisAlignment.center,
+								children: [
+									ElevatedButton(
+										onPressed: (_isSubmittingBuzzIn || _hasEnded)
+											? null
+											: _submitBuzzIn,
+										child: _isSubmittingBuzzIn
+											? const Text('抢答中...')
+											: const Text('一键抢答'),
+									),
+									const SizedBox(width: 12),
+									ElevatedButton(
+										onPressed: _goHome,
+										child: const Text('返回主页'),
+									),
+								],
 							),
 						),
 					],

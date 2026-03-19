@@ -798,3 +798,45 @@ Future<Map<String, dynamic>> getBuzzIn(
     };
   }
 }
+
+Future<Map<String, dynamic>> submitBuzzIn(
+  /* return format:
+  {
+    'success': bool,
+    'detail': null | String, // if success is true, data is null, else data is String (error message)
+  }
+  */
+  String username,
+  String courseID,
+  String classID,
+  String activeID,
+) async {
+  final url = '${settings.endpoint}/submitBuzzIn';
+  final headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ${await getToken()}',
+  };
+  final body = jsonEncode({
+    'username': username,
+    'courseID': courseID,
+    'classID': classID,
+    'activeID': activeID,
+  });
+
+  try {
+    final response = await http
+        .post(
+          Uri.parse(url),
+          headers: headers,
+          body: body,
+        )
+        .timeout(const Duration(seconds: 5));
+    final Map<String, dynamic> responseBody = jsonDecode(response.body);
+    return responseBody;
+  } on TimeoutException {
+    return {
+      'success': false,
+      'detail': '请求超时，请检查网络',
+    };
+  }
+}
