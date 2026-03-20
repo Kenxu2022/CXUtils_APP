@@ -2,6 +2,7 @@ import 'package:cxutils/network/api.dart';
 import 'package:cxutils/pages/home/course_selection_page.dart';
 import 'package:cxutils/pages/settings_page_dialog.dart';
 import 'package:cxutils/providers/credentials_provider.dart';
+import 'package:cxutils/providers/settings_provider.dart';
 import 'package:cxutils/pages/settings_page.dart';
 import 'package:cxutils/utils/sync_logic.dart';
 import 'package:flutter/material.dart';
@@ -37,6 +38,14 @@ class _HomePageState extends State<HomePage> {
       context,
       listen: false,
     );
+    final settingsProvider = Provider.of<SettingsProvider>(
+      context,
+      listen: false,
+    );
+
+    if (!settingsProvider.autoSyncUsersOnStartup) {
+      return;
+    }
 
     while (mounted && !credentialsProvider.isInitialized) {
       await Future<void>.delayed(const Duration(milliseconds: 100));

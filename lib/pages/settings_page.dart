@@ -93,6 +93,16 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: const Text('同步'),
               ),
             ),
+            SizedBox(height: 4),
+            ListTile(
+              title: Text("启动时自动同步账号信息", style: TextStyle(fontSize: 16)),
+              trailing: Switch(
+                value: settingsProvider.autoSyncUsersOnStartup,
+                onChanged: (bool value) async {
+                  await settingsProvider.setAutoSyncUsersOnStartup(value);
+                },
+              ),
+            ),
             SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.only(left: 12.0),

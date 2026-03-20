@@ -13,6 +13,7 @@ class SettingsProvider extends ChangeNotifier {
   String _locationText = "";
   String _overrideCourseID = "";
   String _overrideClassID = "";
+  bool _autoSyncUsersOnStartup = true;
   bool _isInitializationFinished = false;
   bool _isInitialized = false;
 
@@ -36,6 +37,7 @@ class SettingsProvider extends ChangeNotifier {
     final String? locationText = _prefs.getString('locationText');
     final String? overrideCourseID = _prefs.getString('overrideCourseID');
     final String? overrideClassID = _prefs.getString('overrideClassID');
+    final bool? autoSyncUsersOnStartup = _prefs.getBool('autoSyncUsersOnStartup');
     _isInitializationFinished = _prefs.getBool('isInitializationFinished') ?? false;
     _themeValue =
         themeInt == 0
@@ -51,6 +53,7 @@ class SettingsProvider extends ChangeNotifier {
     _locationText = locationText ?? "";
     _overrideCourseID = overrideCourseID ?? "";
     _overrideClassID = overrideClassID ?? "";
+    _autoSyncUsersOnStartup = autoSyncUsersOnStartup ?? true;
     _isInitialized = true;
     notifyListeners();
   }
@@ -67,6 +70,7 @@ class SettingsProvider extends ChangeNotifier {
   String get locationText => _locationText;
   String get overrideCourseID => _overrideCourseID;
   String get overrideClassID => _overrideClassID;
+  bool get autoSyncUsersOnStartup => _autoSyncUsersOnStartup;
 
   Future<void> setInitializationFinished(bool value) async {
     _isInitializationFinished = value;
@@ -129,6 +133,12 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> setOverrideClassID(String value) async {
     _overrideClassID = value;
     _prefs.setString('overrideClassID', value);
+    notifyListeners();
+  }
+
+  Future<void> setAutoSyncUsersOnStartup(bool value) async {
+    _autoSyncUsersOnStartup = value;
+    _prefs.setBool('autoSyncUsersOnStartup', value);
     notifyListeners();
   }
 
