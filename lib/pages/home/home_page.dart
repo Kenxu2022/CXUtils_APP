@@ -1,7 +1,9 @@
 import 'package:cxutils/network/api.dart';
 import 'package:cxutils/pages/home/course_selection_page.dart';
+import 'package:cxutils/pages/settings_page_dialog.dart';
 import 'package:cxutils/providers/credentials_provider.dart';
 import 'package:cxutils/pages/settings_page.dart';
+import 'package:cxutils/utils/sync_logic.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -15,6 +17,43 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final List<String> _selectedUsername = [];
   String? _addCredentialError;
+  bool _hasCheckedUserSyncOnEnter = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkUserSyncOnFirstEnter();
+    });
+  }
+
+  Future<void> _checkUserSyncOnFirstEnter() async {
+    if (_hasCheckedUserSyncOnEnter || !mounted) {
+      return;
+    }
+    _hasCheckedUserSyncOnEnter = true;
+
+    final credentialsProvider = Provider.of<CredentialsProvider>(
+      context,
+      listen: false,
+    );
+
+    while (mounted && !credentialsProvider.isInitialized) {
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    await syncUsersFromServer(
+      context: context,
+      credentialsProvider: credentialsProvider,
+      showErrorDialog: showSyncUsersErrorDialog,
+      showConfirmDialog: showSyncUsersConfirmDialog,
+      showConfirmWhenNoChanges: false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

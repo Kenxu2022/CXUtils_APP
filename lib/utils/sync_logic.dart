@@ -21,6 +21,7 @@ Future<void> syncUsersFromServer({
   required CredentialsProvider credentialsProvider,
   required ShowSyncUsersErrorDialog showErrorDialog,
   required ShowSyncUsersConfirmDialog showConfirmDialog,
+  bool showConfirmWhenNoChanges = true,
 }) async {
   final result = await syncUsers();
 
@@ -59,6 +60,13 @@ Future<void> syncUsersFromServer({
                 serverNicknames[serverUsers.indexOf(user)],
       )
       .toList();
+
+  if (!showConfirmWhenNoChanges &&
+      usersToAdd.isEmpty &&
+      usersToRemove.isEmpty &&
+      usersToUpdateNickname.isEmpty) {
+    return;
+  }
 
   final bool shouldApply =
       await showConfirmDialog(
