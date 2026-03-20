@@ -7,6 +7,15 @@ import 'package:cxutils/providers/settings_provider.dart';
 
 final settings = SettingsProvider.instance;
 
+Map<String, dynamic> _tokenFailedResponse() {
+  final String detail = lastTokenError ?? '获取Token失败，请稍后重试';
+  return {
+    'success': false,
+    'detail': detail,
+    'data': detail,
+  };
+}
+
 Future<Map<String, dynamic>> addCredential(
   /* return format:
   {
@@ -19,9 +28,13 @@ Future<Map<String, dynamic>> addCredential(
   String nickname,
 ) async {
   final url = '${settings.endpoint}/addCredential';
+  final authToken = await getToken();
+  if (authToken == null) {
+    return _tokenFailedResponse();
+  }
   final headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer ${await getToken()}',
+    'Authorization': 'Bearer $authToken',
   };
   final body = jsonEncode({
     'username': username,
@@ -57,9 +70,13 @@ Future<Map<String, dynamic>> deleteCredential(
   String username,
 ) async {
   final url = '${settings.endpoint}/deleteCredential';
+  final authToken = await getToken();
+  if (authToken == null) {
+    return _tokenFailedResponse();
+  }
   final headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer ${await getToken()}',
+    'Authorization': 'Bearer $authToken',
   };
   final body = jsonEncode({
     'username': username,
@@ -97,9 +114,13 @@ Future<Map<String, dynamic>> syncUsers(
   */
 ) async {
   final url = '${settings.endpoint}/syncUsers';
+  final authToken = await getToken();
+  if (authToken == null) {
+    return _tokenFailedResponse();
+  }
   final headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer ${await getToken()}',
+    'Authorization': 'Bearer $authToken',
   };
 
   try {
@@ -130,9 +151,13 @@ Future<Map<String, dynamic>> updateNickname(
   String nickname,
 ) async {
   final url = '${settings.endpoint}/updateNickname';
+  final authToken = await getToken();
+  if (authToken == null) {
+    return _tokenFailedResponse();
+  }
   final headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer ${await getToken()}',
+    'Authorization': 'Bearer $authToken',
   };
   final body = jsonEncode({
     'username': username,
@@ -176,9 +201,13 @@ Future<Map<String, dynamic>> getCourse(
   String username,
 ) async {
   final url = '${settings.endpoint}/getCourse';
+  final authToken = await getToken();
+  if (authToken == null) {
+    return _tokenFailedResponse();
+  }
   final headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer ${await getToken()}',
+    'Authorization': 'Bearer $authToken',
   };
   final body = jsonEncode({
     'username': username,
@@ -225,9 +254,13 @@ Future<Map<String, dynamic>> getActivity(
   String classID,
 ) async {
   final url = '${settings.endpoint}/getActivity';
+  final authToken = await getToken();
+  if (authToken == null) {
+    return _tokenFailedResponse();
+  }
   final headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer ${await getToken()}',
+    'Authorization': 'Bearer $authToken',
   };
   final body = jsonEncode({
     'username': username,
@@ -270,9 +303,13 @@ Future<Map<String, dynamic>> getSignInDetail(
   String activeID,
 ) async {
   final url = '${settings.endpoint}/getSignInDetail';
+  final authToken = await getToken();
+  if (authToken == null) {
+    return _tokenFailedResponse();
+  }
   final headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer ${await getToken()}',
+    'Authorization': 'Bearer $authToken',
   };
   final body = jsonEncode({
     'username': username,
@@ -310,9 +347,13 @@ Future<Map<String, dynamic>> getValidateCode(
   String activeID,
 ) async {
   final url = '${settings.endpoint}/getValidateCode';
+  final authToken = await getToken();
+  if (authToken == null) {
+    return _tokenFailedResponse();
+  }
   final headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer ${await getToken()}',
+    'Authorization': 'Bearer $authToken',
   };
   final body = jsonEncode({
     'username': username,
@@ -351,9 +392,13 @@ Future<Map<String, dynamic>> normalSignIn(
   [String? validate]
 ) async {
   final url = '${settings.endpoint}/normalSignIn';
+  final authToken = await getToken();
+  if (authToken == null) {
+    return _tokenFailedResponse();
+  }
   final headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer ${await getToken()}',
+    'Authorization': 'Bearer $authToken',
   };
   final body = jsonEncode({
     'username': username,
@@ -391,9 +436,13 @@ Future<Map<String, dynamic>> locationSignIn(
   [String? validate]
 ) async {
   final url = '${settings.endpoint}/locationSignIn';
+  final authToken = await getToken();
+  if (authToken == null) {
+    return _tokenFailedResponse();
+  }
   final headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer ${await getToken()}',
+    'Authorization': 'Bearer $authToken',
   };
   final body = jsonEncode({
     'username': username,
@@ -436,9 +485,13 @@ Future<Map<String, dynamic>> qrcodeSignIn(
   [String? validate]
 ) async {
   final url = '${settings.endpoint}/qrcodeSignIn';
+  final authToken = await getToken();
+  if (authToken == null) {
+    return _tokenFailedResponse();
+  }
   final headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer ${await getToken()}',
+    'Authorization': 'Bearer $authToken',
   };
   final body = needLocation ? jsonEncode({
     'username': username,
@@ -487,9 +540,13 @@ Future<Map<String, dynamic>> signCodeSignIn(
   [String? validate]
 ) async {
   final url = '${settings.endpoint}/signcodeSignIn';
+  final authToken = await getToken();
+  if (authToken == null) {
+    return _tokenFailedResponse();
+  }
   final headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer ${await getToken()}',
+    'Authorization': 'Bearer $authToken',
   };
   final body = jsonEncode({
     'username': username,
@@ -537,9 +594,13 @@ Future<Map<String, dynamic>> getQuizDetail(
   String activeID, 
 ) async {
   final url = '${settings.endpoint}/getQuizProblem';
+  final authToken = await getToken();
+  if (authToken == null) {
+    return _tokenFailedResponse();
+  }
   final headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer ${await getToken()}',
+    'Authorization': 'Bearer $authToken',
   };
   final body = jsonEncode({
     'username': username,
@@ -578,9 +639,13 @@ Future<Map<String, dynamic>> submitQuizProblem(
   List<Map<String, dynamic>> data,
 ) async {
   final url = '${settings.endpoint}/submitQuizProblem';
+  final authToken = await getToken();
+  if (authToken == null) {
+    return _tokenFailedResponse();
+  }
   final headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer ${await getToken()}',
+    'Authorization': 'Bearer $authToken',
   };
   final body = jsonEncode({
     'username': username,
@@ -624,9 +689,13 @@ Future<Map<String, dynamic>> getDiscussion(
   String activeID, 
 ) async {
   final url = '${settings.endpoint}/getDiscussion';
+  final authToken = await getToken();
+  if (authToken == null) {
+    return _tokenFailedResponse();
+  }
   final headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer ${await getToken()}',
+    'Authorization': 'Bearer $authToken',
   };
   final body = jsonEncode({
     'username': username,
@@ -671,9 +740,13 @@ Future<Map<String, dynamic>> getReply(
   String bbsid,
 ) async {
   final url = '${settings.endpoint}/getReply';
+  final authToken = await getToken();
+  if (authToken == null) {
+    return _tokenFailedResponse();
+  }
   final headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer ${await getToken()}',
+    'Authorization': 'Bearer $authToken',
   };
   final body = jsonEncode({
     'username': username,
@@ -714,9 +787,13 @@ Future<Map<String, dynamic>> submitReply(
   String content,
 ) async {
   final url = '${settings.endpoint}/submitReply';
+  final authToken = await getToken();
+  if (authToken == null) {
+    return _tokenFailedResponse();
+  }
   final headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer ${await getToken()}',
+    'Authorization': 'Bearer $authToken',
   };
   final body = jsonEncode({
     'username': username,
@@ -770,9 +847,13 @@ Future<Map<String, dynamic>> getBuzzIn(
   String activeID, 
 ) async {
   final url = '${settings.endpoint}/getBuzzIn';
+  final authToken = await getToken();
+  if (authToken == null) {
+    return _tokenFailedResponse();
+  }
   final headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer ${await getToken()}',
+    'Authorization': 'Bearer $authToken',
   };
   final body = jsonEncode({
     'username': username,
@@ -812,9 +893,13 @@ Future<Map<String, dynamic>> submitBuzzIn(
   String activeID,
 ) async {
   final url = '${settings.endpoint}/submitBuzzIn';
+  final authToken = await getToken();
+  if (authToken == null) {
+    return _tokenFailedResponse();
+  }
   final headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer ${await getToken()}',
+    'Authorization': 'Bearer $authToken',
   };
   final body = jsonEncode({
     'username': username,
