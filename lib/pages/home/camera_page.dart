@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 class CameraPage extends StatefulWidget {
   const CameraPage({super.key});
@@ -126,11 +127,20 @@ class _CameraPageState extends State<CameraPage> {
 
   Widget _buildPreviewArea() {
     if (_capturedImagePath != null) {
-      return Image.file(
-        File(_capturedImagePath!),
-        fit: BoxFit.cover,
-        width: double.infinity,
-      );
+      if (kIsWeb) {
+        return Image.network(
+          _capturedImagePath!,
+          fit: BoxFit.cover,
+          width: double.infinity
+        );
+      }
+      else {
+        return Image.file(
+          File(_capturedImagePath!),
+          fit: BoxFit.cover,
+          width: double.infinity,
+        );
+      }
     }
 
     final controller = _controller;
