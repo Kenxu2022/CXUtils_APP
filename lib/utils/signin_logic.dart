@@ -6,6 +6,7 @@ Future<List<Map<String, dynamic>>> signInAll(
   String activeID, 
   bool needLocation, {
   List<String>? validateCodes,
+  List<String?>? objectIds,
   String? enc,
   String? signCode,
 }) async {
@@ -15,10 +16,13 @@ Future<List<Map<String, dynamic>>> signInAll(
     final validate = (validateCodes != null && i < validateCodes.length)
         ? validateCodes[i]
         : null;
+    final objectId = (objectIds != null && i < objectIds.length)
+      ? objectIds[i]
+      : null;
 
     switch (type) {
       case 0: // normal
-        futures.add(api.normalSignIn(username, activeID, validate));
+        futures.add(api.normalSignIn(username, activeID, validate, objectId));
         break;
       case 2: // qrcode
         futures.add(api.qrcodeSignIn(username, activeID, enc!, needLocation, validate));

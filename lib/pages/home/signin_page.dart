@@ -4,6 +4,7 @@ import 'package:cxutils/pages/home/home_page.dart';
 import 'package:cxutils/utils/signin_logic.dart';
 import 'package:cxutils/pages/home/signcode_input_page.dart';
 import 'package:cxutils/pages/home/qrcode_scanning_page.dart';
+import 'package:cxutils/pages/home/upload_image_page.dart';
 
 class SignInPage extends StatefulWidget {
   final List<String> selectedUsernames;
@@ -84,8 +85,12 @@ class _SignInPageState extends State<SignInPage> {
       final int type = detail['type'];
       String? signCode;
       String? enc;
+      List<String?>? objectIds;
       // sign code input for type 3/5
       if (type == 3 || type == 5) {
+        if (!mounted) {
+          return;
+        }
         signCode = await Navigator.of(context).push<String>(
           MaterialPageRoute(builder: (_) => const SigncodeInputPage()),
         );
@@ -98,6 +103,9 @@ class _SignInPageState extends State<SignInPage> {
         }
       } else if (type == 2) {
         // get enc by scanning QR code for type 2
+        if (!mounted) {
+          return;
+        }
         enc = await Navigator.of(context).push<String>(
           MaterialPageRoute(builder: (_) => const QrcodeScanningPage()),
         );
@@ -108,6 +116,27 @@ class _SignInPageState extends State<SignInPage> {
           });
           return;
         }
+      } else if (type == 0 && detail['needPhoto'] == true) {
+        if (!mounted) {
+          return;
+        }
+        final uploadedObjectIds = await Navigator.of(context).push<Map<String, String>>(
+          MaterialPageRoute(
+            builder: (_) => UploadImagePage(
+              selectedUsernames: widget.selectedUsernames,
+            ),
+          ),
+        );
+        if (uploadedObjectIds == null) {
+          setState(() {
+            _error = '未完成图片上传，已取消';
+            _loading = false;
+          });
+          return;
+        }
+        objectIds = widget.selectedUsernames
+            .map((u) => uploadedObjectIds[u])
+            .toList(growable: false);
       }
 
       // perform sign-in
@@ -117,6 +146,7 @@ class _SignInPageState extends State<SignInPage> {
         widget.selectedActiveID,
         detail['needLocation'],
         validateCodes: detail['needValidation'] == true ? fetchedValidateCode : null,
+        objectIds: detail['needPhoto'] == true ? objectIds : null,
         signCode: signCode,
         enc: enc
       );

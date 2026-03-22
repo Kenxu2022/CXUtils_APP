@@ -287,6 +287,40 @@ Future<Map<String, dynamic>> getActivity(
   }
 }
 
+Future<Map<String, dynamic>> uploadImage(
+  /* return format:
+  {
+    'success': bool,
+    'detail': null | String, // if success is true, detail is null, else data is String (error message)
+    'objectId': String | null, // if success is true, objectId is String, else data is null
+  }
+  */
+  String username,
+  String imageFilePath,
+) async {
+  final url = '${settings.endpoint}/uploadImage';
+  final authToken = await getToken();
+  if (authToken == null) {
+    return _tokenFailedResponse();
+  }
+  final request = http.MultipartRequest('POST', Uri.parse(url));
+  request.headers['Authorization'] = 'Bearer $authToken';
+  request.fields['username'] = username;
+  request.files.add(await http.MultipartFile.fromPath('image', imageFilePath));
+
+  try {
+    final response = await request.send().timeout(const Duration(seconds: 5));
+    final responseBodyString = await response.stream.bytesToString();
+    final Map<String, dynamic> responseBody = jsonDecode(responseBodyString);
+    return responseBody;
+  } on TimeoutException {
+    return {
+      'success': false,
+      'data': '请求超时，请检查网络',
+    };
+  }
+}
+
 Future<Map<String, dynamic>> getSignInDetail(
   /* return format:
   {
@@ -296,6 +330,7 @@ Future<Map<String, dynamic>> getSignInDetail(
           'type': int, --> 0-normal, 2-QRCode, 3-gesture, 4-location, 5-signcode
           'needValidation': bool,
           'needLocation': bool,
+          'needPhoto': bool
         }
   }
   */
@@ -389,7 +424,7 @@ Future<Map<String, dynamic>> normalSignIn(
   */
   String username,
   String activeID,
-  [String? validate]
+  [String? validate, String? objectId]
 ) async {
   final url = '${settings.endpoint}/normalSignIn';
   final authToken = await getToken();
@@ -404,6 +439,7 @@ Future<Map<String, dynamic>> normalSignIn(
     'username': username,
     'activeID': activeID,
     'validate': validate,
+    'objectId': objectId,
   });
 
   try {
