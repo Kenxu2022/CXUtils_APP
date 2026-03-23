@@ -321,7 +321,7 @@ Future<Map<String, dynamic>> uploadImage(
   }
 
   try {
-    final response = await request.send().timeout(const Duration(seconds: 5));
+    final response = await request.send().timeout(const Duration(seconds: 15));
     final responseBodyString = await response.stream.bytesToString();
     final Map<String, dynamic> responseBody = jsonDecode(responseBodyString);
     return responseBody;
