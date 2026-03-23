@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cxutils/network/api.dart' as api;
 import 'package:cxutils/pages/home/quiz_submission_page.dart';
@@ -34,6 +35,7 @@ class _QuizPageState extends State<QuizPage> {
   final Map<int, String> _judgementAnswers = {};
   final Map<int, Map<String, TextEditingController>> _blankAnswers = {};
   final Map<int, TextEditingController> _essayAnswers = {};
+  final Map<String, Future<dynamic>> _relayImageFutures = {};
 
   @override
   void initState() {
@@ -101,6 +103,41 @@ class _QuizPageState extends State<QuizPage> {
     );
   }
 
+  Widget _buildImageLoading(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      alignment: Alignment.center,
+      child: const SizedBox(
+        width: 20,
+        height: 20,
+        child: CircularProgressIndicator(strokeWidth: 2),
+      ),
+    );
+  }
+
+  Widget _buildImageError(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.broken_image_outlined,
+            size: 18,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '图片加载失败',
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          ),
+        ],
+      ),
+    );
+  }
+
   List<Widget> _buildResourceImages(Map<String, dynamic> question) {
     final resourceUrl = question['resourceUrl'];
     if (resourceUrl is! List || resourceUrl.isEmpty) {
@@ -113,58 +150,46 @@ class _QuizPageState extends State<QuizPage> {
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: Image.network(
-                url,
-                fit: BoxFit.contain,
-                headers: const {'User-Agent': _imageUserAgent},
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) {
-                    return child;
-                  }
-                  return Container(
-                    padding: const EdgeInsets.symmetric(vertical: 24),
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.surfaceContainerHighest,
-                    alignment: Alignment.center,
-                    child: const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+              child: kIsWeb
+                  ? FutureBuilder<dynamic>(
+                      future: _relayImageFutures.putIfAbsent(
+                        url,
+                        () => api.relayImage(url),
+                      ),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState != ConnectionState.done) {
+                          return _buildImageLoading(context);
+                        }
+                        if (snapshot.hasError) {
+                          return _buildImageError(context);
+                        }
+                        final imageData = snapshot.data;
+                        if (imageData is Uint8List && imageData.isNotEmpty) {
+                          return Image.memory(
+                            imageData,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              return _buildImageError(context);
+                            },
+                          );
+                        }
+                        return _buildImageError(context);
+                      },
+                    )
+                  : Image.network(
+                      url,
+                      fit: BoxFit.contain,
+                      headers: const {'User-Agent': _imageUserAgent},
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) {
+                          return child;
+                        }
+                        return _buildImageLoading(context);
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return _buildImageError(context);
+                      },
                     ),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 20,
-                    ),
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.surfaceContainerHighest,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.broken_image_outlined,
-                          size: 18,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '图片加载失败',
-                          style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
             ),
           ),
         )

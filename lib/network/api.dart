@@ -333,6 +333,38 @@ Future<Map<String, dynamic>> uploadImage(
   }
 }
 
+Future<dynamic> relayImage(
+  // return image bytes
+  String imageUrl,
+) async {
+  final url = '${settings.endpoint}/relayImage';
+  final queryParam = {
+    'imageUrl': imageUrl,
+  };
+  final authToken = await getToken();
+  if (authToken == null) {
+    return _tokenFailedResponse();
+  }
+  final headers = {
+    'Authorization': 'Bearer $authToken',
+  };
+  
+  try {
+    final response = await http
+      .get(
+        Uri.parse(url).replace(queryParameters: queryParam),
+        headers: headers,
+      )
+      .timeout(const Duration(seconds: 10));
+    return response.bodyBytes;
+  } on TimeoutException {
+    return {
+      'success': false,
+      'data': '请求超时，请检查网络',
+    };
+  }
+}
+
 Future<Map<String, dynamic>> getSignInDetail(
   /* return format:
   {
