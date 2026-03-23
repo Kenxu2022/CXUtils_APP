@@ -152,6 +152,33 @@ class _CameraPageState extends State<CameraPage> {
     }
   }
 
+  Future<void> _retakePicture() async {
+    if (!kIsWeb) {
+      setState(() {
+        _capturedImagePath = null;
+      });
+      return;
+    }
+
+    final controller = _controller;
+    setState(() {
+      _capturedImagePath = null;
+      _isInitializing = true;
+    });
+
+    await controller?.dispose();
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _controller = null;
+    });
+
+    await _initCamera();
+  }
+
   Widget _buildPreviewArea() {
     if (_capturedImagePath != null) {
       if (kIsWeb) {
@@ -267,11 +294,7 @@ class _CameraPageState extends State<CameraPage> {
                           Expanded(
                             child: Center(
                               child: IconButton.filledTonal(
-                                onPressed: () {
-                                  setState(() {
-                                    _capturedImagePath = null;
-                                  });
-                                },
+                                onPressed: _retakePicture,
                                 iconSize: 45,
                                 icon: const Icon(Icons.close_rounded),
                               ),
