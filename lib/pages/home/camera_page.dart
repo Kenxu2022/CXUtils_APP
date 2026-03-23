@@ -13,6 +13,8 @@ class CameraPage extends StatefulWidget {
 
 class _CameraPageState extends State<CameraPage> {
   CameraController? _controller;
+  List<CameraDescription> _cameras = <CameraDescription>[];
+  int _selectedCameraIndex = 0;
   bool _isInitializing = true;
   String? _capturedImagePath;
   bool _isTakingPicture = false;
@@ -57,7 +59,7 @@ class _CameraPageState extends State<CameraPage> {
       }
 
       final controller = CameraController(
-        cameras[0],
+        cameras[_selectedCameraIndex],
         ResolutionPreset.high,
         enableAudio: false,
       );
@@ -69,6 +71,7 @@ class _CameraPageState extends State<CameraPage> {
       }
 
       setState(() {
+        _cameras = cameras;
         _controller = controller;
         _isInitializing = false;
       });
@@ -94,6 +97,30 @@ class _CameraPageState extends State<CameraPage> {
         });
       }
     }
+  }
+
+  Future<void> _switchCamera() async {
+    if (_isInitializing || _cameras.length <= 1) {
+      return;
+    }
+
+    final controller = _controller;
+    setState(() {
+      _isInitializing = true;
+    });
+
+    await controller?.dispose();
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _selectedCameraIndex = (_selectedCameraIndex + 1) % _cameras.length;
+      _controller = null;
+    });
+
+    await _initCamera();
   }
 
   Future<void> _takePicture() async {
@@ -180,6 +207,16 @@ class _CameraPageState extends State<CameraPage> {
     );
   }
 
+  Widget _buildSwitchCameraButton() {
+    final bool disabled = _isInitializing || _isTakingPicture;
+
+    return IconButton.filledTonal(
+      onPressed: disabled ? null : _switchCamera,
+      iconSize: 32,
+      icon: const Icon(Icons.cameraswitch_rounded),
+    );
+  }
+
   @override
   void dispose() {
     _controller?.dispose();
@@ -210,7 +247,21 @@ class _CameraPageState extends State<CameraPage> {
               Expanded(
                 flex: 15,
                 child: _capturedImagePath == null
-                    ? Center(child: _buildShutterButton())
+                    ? Row(
+                        children: <Widget>[
+                          const Expanded(child: SizedBox()),
+                          Expanded(
+                            child: Center(child: _buildShutterButton()),
+                          ),
+                          Expanded(
+                            child: Center(
+                              child: _cameras.length > 1
+                                  ? _buildSwitchCameraButton()
+                                  : const SizedBox.shrink(),
+                            ),
+                          ),
+                        ],
+                      )
                     : Row(
                         children: <Widget>[
                           Expanded(
