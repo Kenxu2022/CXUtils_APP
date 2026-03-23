@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:cxutils/utils/token_management.dart';
 import 'package:cxutils/providers/settings_provider.dart';
+import 'package:flutter/foundation.dart';
 
 final settings = SettingsProvider.instance;
 
@@ -306,7 +307,18 @@ Future<Map<String, dynamic>> uploadImage(
   final request = http.MultipartRequest('POST', Uri.parse(url));
   request.headers['Authorization'] = 'Bearer $authToken';
   request.fields['username'] = username;
-  request.files.add(await http.MultipartFile.fromPath('image', imageFilePath));
+  if (kIsWeb) {
+    Uint8List imageBytes = await http.readBytes(Uri.parse(imageFilePath));
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'image',
+        imageBytes,
+        filename: 'upload.jpg',
+      ),
+    );
+  } else {
+    request.files.add(await http.MultipartFile.fromPath('image', imageFilePath));
+  }
 
   try {
     final response = await request.send().timeout(const Duration(seconds: 5));
