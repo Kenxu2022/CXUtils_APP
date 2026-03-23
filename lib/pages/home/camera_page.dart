@@ -62,6 +62,7 @@ class _CameraPageState extends State<CameraPage> {
         cameras[_selectedCameraIndex],
         ResolutionPreset.high,
         enableAudio: false,
+        imageFormatGroup: ImageFormatGroup.jpeg,
       );
 
       await controller.initialize();
